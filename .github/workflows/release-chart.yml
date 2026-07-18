@@ -1,0 +1,125 @@
+name: release-chart
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+    inputs:
+      chart_version:
+        description: "Semver chart version (for example: 0.1.1)"
+        required: true
+      source_sha:
+        description: "Optional commit SHA for image tags and chart appVersion"
+        required: false
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish-release:
+    runs-on: ubuntu-latest
+    env:
+      API_IMAGE: ghcr.io/${{ github.repository_owner }}/weatherapp-api
+      WEB_IMAGE: ghcr.io/${{ github.repository_owner }}/weatherapp-web
+      CHART_REGISTRY: oci://ghcr.io/${{ github.repository_owner }}/charts
+      CHART_PATH: deploy/chart/weatherapp
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve release version and source SHA
+        shell: bash
+        run: |
+          if [[ "${GITHUB_EVENT_NAME}" == "push" ]]; then
+            VERSION="${GITHUB_REF_NAME#v}"
+            SOURCE_SHA="${GITHUB_SHA}"
+          else
+            VERSION="${{ github.event.inputs.chart_version }}"
+            SOURCE_SHA="${{ github.event.inputs.source_sha || github.sha }}"
+          fi
+
+          if [[ ! "${VERSION}" =~ ^[0-9]+\.[0-9]+\.[0-9]+([-.][0-9A-Za-z.-]+)?$ ]]; then
+            echo "Chart version '${VERSION}' is not valid semver" >&2
+            exit 1
+          fi
+
+          echo "CHART_VERSION=${VERSION}" >> "${GITHUB_ENV}"
+          echo "SOURCE_SHA=${SOURCE_SHA}" >> "${GITHUB_ENV}"
+          echo "Resolved CHART_VERSION=${VERSION}, SOURCE_SHA=${SOURCE_SHA}"
+
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push API image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile
+          push: true
+          platforms: linux/amd64,linux/arm64
+          tags: |
+            ${{ env.API_IMAGE }}:${{ env.SOURCE_SHA }}
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.revision=${{ env.SOURCE_SHA }}
+
+      - name: Build and push web image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./frontend
+          file: ./frontend/Dockerfile
+          push: true
+          platforms: linux/amd64,linux/arm64
+          tags: |
+            ${{ env.WEB_IMAGE }}:${{ env.SOURCE_SHA }}
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.revision=${{ env.SOURCE_SHA }}
+
+      - uses: azure/setup-helm@v4
+        with:
+          version: v3.16.3
+
+      - name: Login to GHCR for OCI chart push
+        shell: bash
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ghcr.io --username "${{ github.actor }}" --password-stdin
+
+      - name: Prepare chart with release image refs
+        shell: bash
+        run: |
+          cp -R "${CHART_PATH}" /tmp/weatherapp-chart
+
+          sed -i "s/^version: .*/version: ${CHART_VERSION}/" /tmp/weatherapp-chart/Chart.yaml
+          sed -i "s/^appVersion: .*/appVersion: \"${SOURCE_SHA}\"/" /tmp/weatherapp-chart/Chart.yaml
+
+          sed -i "s|^    tag: .*|    tag: ${SOURCE_SHA}|" /tmp/weatherapp-chart/values.yaml
+          sed -i "s|^    digest: .*|    digest: \"\"|" /tmp/weatherapp-chart/values.yaml
+
+          helm lint /tmp/weatherapp-chart
+
+      - name: Package and publish OCI chart
+        shell: bash
+        run: |
+          mkdir -p /tmp/chart-dist
+          helm package /tmp/weatherapp-chart --destination /tmp/chart-dist
+          helm push "/tmp/chart-dist/weatherapp-${CHART_VERSION}.tgz" "${CHART_REGISTRY}"
+
+      - name: Release summary
+        shell: bash
+        run: |
+          {
+            echo "## Weatherapp release published"
+            echo ""
+            echo "- Chart: \`weatherapp\`"
+            echo "- Version: \`${CHART_VERSION}\`"
+            echo "- OCI registry: \`${CHART_REGISTRY}\`"
+            echo "- API image: \`${API_IMAGE}:${SOURCE_SHA}\`"
+            echo "- Web image: \`${WEB_IMAGE}:${SOURCE_SHA}\`"
+          } >> "${GITHUB_STEP_SUMMARY}"

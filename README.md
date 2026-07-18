@@ -1,2 +1,82 @@
-# weatherapp
-peronsal weather app project
+# Weatherapp
+
+Weatherapp is a self-hosted weather dashboard for a Raspberry Pi k3s homelab. It provides:
+
+- Current conditions
+- Hourly and daily forecasts
+- NWS alert visibility
+- Golf and lawn recommendation cards
+- Prometheus telemetry from the API
+
+## Stack
+
+- Backend: FastAPI (`backend/`)
+- Frontend: React + Vite (`frontend/`)
+- Delivery: Docker + Helm chart (`deploy/chart/weatherapp`)
+- CI: GitHub Actions tests, multi-arch image publishing, and OCI Helm chart release publishing
+
+## Repository layout
+
+```text
+backend/                 FastAPI application, weather integration, tests
+frontend/                React dashboard
+deploy/chart/weatherapp  Helm chart for API + web deployment
+observability/           Grafana dashboard JSON
+docs/                    Architecture, API, and operations documentation
+```
+
+## Local development
+
+Backend:
+
+```bash
+cd backend
+pip install -e ".[dev]"
+uvicorn weather_api.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+Frontend:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+The frontend development server proxies `/api`, `/health`, and `/metrics` to `http://localhost:8000`.
+
+## Testing
+
+Backend:
+
+```bash
+cd backend
+pytest tests
+```
+
+Frontend:
+
+```bash
+cd frontend
+npm run test:ci
+```
+
+## Helm deployment (local chart)
+
+```bash
+helm upgrade --install weatherapp ./deploy/chart/weatherapp \
+  --namespace weather \
+  --create-namespace \
+  --set api.image.tag=<sha-tag> \
+  --set web.image.tag=<sha-tag>
+```
+
+## k3s-infrastructure integration
+
+Production handoff uses an OCI-published chart and Flux chart version pinning in `k3s-infrastructure`.
+
+- OCI chart target: `oci://ghcr.io/dylanwhitetech/charts`
+- Chart name: `weatherapp`
+- Infra promotion model: bump `spec.chart.spec.version` in `kubernetes/apps/weatherapp/helmrelease.yaml`
+
+See `docs/operations.md` for release and handoff details.
