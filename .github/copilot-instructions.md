@@ -31,9 +31,9 @@ cd frontend && npm run dev  # dev server on :5173 (proxies /api → :8000)
 make local-down          # stop backend
 ```
 
-**Agentic shortcut:** the `weatherapp-local-preflight` custom agent handles the
-full startup, health checks, and browser preview. Trigger it with the
-`weatherapp_local_test` tool or the `/weather-local-test` slash command.
+**Agentic shortcut:** see `.github/skills/weatherapp-local-preflight/SKILL.md`
+for the full skill. The Copilot CLI extension in `.github/extensions/weatherapp-local-tester/`
+automates execution — trigger with `weatherapp_local_test` tool or `/weather-local-test`.
 
 ## Testing
 

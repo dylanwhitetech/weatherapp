@@ -59,9 +59,11 @@ make local-logs          # tail backend container logs
 make local-status        # show container status (docker compose ps)
 ```
 
-### Agentic shortcut (GitHub Copilot CLI)
+### Agentic shortcut (GitHub Copilot)
 
-From a project session, type `/weather-local-test` in the chat composer. The preflight agent builds the backend, starts the frontend, health-checks both, and opens the browser preview automatically. Type `/weather-local-stop` to tear down.
+A skill is defined at `.github/skills/weatherapp-local-preflight/SKILL.md` — readable, plain-English steps covering the full startup, health checks, and browser preview workflow.
+
+The Copilot CLI extension in `.github/extensions/weatherapp-local-tester/` automates execution. From a project session, type `/weather-local-test` in the chat composer. The preflight agent builds the backend, starts the frontend, health-checks both, and opens the browser preview automatically. Type `/weather-local-stop` to tear down.
 
 ### Backend-only (no Docker)
 
