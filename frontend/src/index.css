@@ -1,0 +1,29 @@
+:root {
+  font-family: Inter, 'Segoe UI', sans-serif;
+  line-height: 1.4;
+  color: #111827;
+  background-color: #f8fafc;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0 0 0.5rem;
+}
+
+p {
+  margin: 0.25rem 0;
+}
+
+ul {
+  margin: 0.5rem 0 0;
+  padding-left: 1rem;
+}

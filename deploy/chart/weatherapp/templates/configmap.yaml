@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "weatherapp.fullname" . }}-config
+  namespace: {{ .Values.namespace.name }}
+  labels:
+    {{- include "weatherapp.labels" . | nindent 4 }}
+data:
+  WEATHER_LOCATION_NAME: {{ .Values.api.env.WEATHER_LOCATION_NAME | quote }}
+  WEATHER_LATITUDE: {{ .Values.api.env.WEATHER_LATITUDE | quote }}
+  WEATHER_LONGITUDE: {{ .Values.api.env.WEATHER_LONGITUDE | quote }}
+  WEATHER_TIMEZONE: {{ .Values.api.env.WEATHER_TIMEZONE | quote }}
+  NWS_USER_AGENT: {{ .Values.api.env.NWS_USER_AGENT | quote }}
+  CACHE_TTL_SECONDS: {{ .Values.api.env.CACHE_TTL_SECONDS | quote }}
+  STALE_DATA_MAX_SECONDS: {{ .Values.api.env.STALE_DATA_MAX_SECONDS | quote }}
+  LOG_LEVEL: {{ .Values.api.env.LOG_LEVEL | quote }}

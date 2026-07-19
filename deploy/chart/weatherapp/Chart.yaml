@@ -1,0 +1,6 @@
+apiVersion: v2
+name: weatherapp
+description: Helm chart for weatherapp API and web dashboard
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
