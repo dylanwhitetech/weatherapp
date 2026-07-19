@@ -27,7 +27,43 @@ docs/                    Architecture, API, and operations documentation
 
 ## Local development
 
-Backend:
+### Prerequisites
+
+- Docker Desktop (or Docker Engine + Compose plugin)
+- Node.js 18+
+- Copy `.env.example` to `.env` and set your `NWS_USER_AGENT` contact string
+
+### Start the stack
+
+```bash
+# 1. Start backend (builds image, starts container on :8000)
+make local-up
+
+# 2. Start frontend dev server (separate terminal, runs on :5173)
+cd frontend && npm install && npm run dev
+```
+
+Open `http://localhost:5173`. The frontend proxies `/api`, `/health`, and `/metrics` to the backend container.
+
+### Stop the stack
+
+```bash
+make local-down          # stop and remove backend container
+# Ctrl+C the frontend dev server terminal
+```
+
+### Other useful commands
+
+```bash
+make local-logs          # tail backend container logs
+make local-status        # show container status (docker compose ps)
+```
+
+### Agentic shortcut (GitHub Copilot CLI)
+
+From a project session, type `/weather-local-test` in the chat composer. The preflight agent builds the backend, starts the frontend, health-checks both, and opens the browser preview automatically. Type `/weather-local-stop` to tear down.
+
+### Backend-only (no Docker)
 
 ```bash
 cd backend
@@ -35,30 +71,23 @@ pip install -e ".[dev]"
 uvicorn weather_api.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-Frontend:
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-The frontend development server proxies `/api`, `/health`, and `/metrics` to `http://localhost:8000`.
-
 ## Testing
 
-Backend:
+Run all tests:
 
 ```bash
-cd backend
-pytest tests
+make backend-test        # pytest
+make frontend-test       # vitest (CI mode, no watch)
 ```
 
-Frontend:
+Or individually:
 
 ```bash
-cd frontend
-npm run test:ci
+# Backend
+cd backend && pytest tests
+
+# Frontend
+cd frontend && npm run test:ci
 ```
 
 ## Helm deployment (local chart)
