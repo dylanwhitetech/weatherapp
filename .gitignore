@@ -27,3 +27,6 @@ coverage/
 .env
 .env.*
 !.env.example
+
+# Local extension runtime artifacts
+.copilot-local/
