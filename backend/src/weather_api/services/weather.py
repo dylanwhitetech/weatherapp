@@ -100,7 +100,7 @@ def _normalize_current(observation_payload: dict[str, Any]) -> CurrentConditions
     return CurrentConditions(
         observed_at=_parse_datetime(props.get("timestamp")),
         temperature_f=_c_to_f(temperature_c),
-        feels_like_f=_c_to_f(temperature_c if dewpoint_c is None else (temperature_c + dewpoint_c) / 2),
+        feels_like_f=_c_to_f(temperature_c if (dewpoint_c is None or temperature_c is None) else (temperature_c + dewpoint_c) / 2),
         relative_humidity_percent=humidity,
         wind_speed_mph=_mps_to_mph(wind_speed_raw),
         wind_gust_mph=_mps_to_mph(wind_gust_raw),
