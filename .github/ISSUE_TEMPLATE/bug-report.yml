@@ -1,0 +1,64 @@
+name: Bug report
+description: Report a defect in the backend, frontend, chart, or local development flow.
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What broke, and why does it matter?
+      placeholder: A concise description of the problem and user impact.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Provide enough detail for someone else to reproduce it.
+      placeholder: |
+        1. Start the stack...
+        2. Open...
+        3. Observe...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Affected surface
+      options:
+        - Backend API
+        - Frontend UI
+        - Local development
+        - Helm / deployment
+        - CI / automation
+        - Copilot customization
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Logs, screenshots, or additional context
+      description: Redact secrets; use placeholders instead of credentials.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Pre-submission checks
+      options:
+        - label: I searched for an existing issue first.
+          required: true
+        - label: I did not include secrets, tokens, or real passwords.
+          required: true
