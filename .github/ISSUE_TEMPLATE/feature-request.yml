@@ -1,0 +1,58 @@
+name: Feature request
+description: Propose a product, developer experience, or deployment improvement.
+title: "[Feature]: "
+labels:
+  - enhancement
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or opportunity
+      description: What is missing or painful today?
+      placeholder: Describe the current limitation and who it affects.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Describe the preferred change.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: List the behaviors or outcomes that define done.
+      placeholder: |
+        - [ ] ...
+        - [ ] ...
+    validations:
+      required: true
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Primary surface
+      options:
+        - Backend API
+        - Frontend UI
+        - Local development
+        - Helm / deployment
+        - CI / automation
+        - Copilot customization
+    validations:
+      required: true
+  - type: textarea
+    id: references
+    attributes:
+      label: References or prior art
+      description: Include related issues, docs, or external examples.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Pre-submission checks
+      options:
+        - label: I searched for an existing issue first.
+          required: true
+        - label: I used placeholders instead of secrets or credentials.
+          required: true

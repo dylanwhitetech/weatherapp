@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Awesome Copilot catalog
+    url: https://github.com/github/awesome-copilot
+    about: Check for existing agent and skill templates before requesting new AI customization work.

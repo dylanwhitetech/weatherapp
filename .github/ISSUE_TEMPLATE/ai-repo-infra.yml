@@ -1,0 +1,53 @@
+name: AI repo infra
+description: Request or track changes to Copilot instructions, skills, agents, templates, or related governance.
+title: "[AI Infra]: "
+labels:
+  - ai
+  - documentation
+body:
+  - type: textarea
+    id: goal
+    attributes:
+      label: Goal
+      description: What AI standard, customization, or workflow change do you want?
+    validations:
+      required: true
+  - type: checkboxes
+    id: surfaces
+    attributes:
+      label: Affected surfaces
+      options:
+        - label: `.github/copilot-instructions.md`
+        - label: `.github/skills/`
+        - label: `agents/`
+        - label: PR / issue templates
+        - label: `.github/extensions/`
+        - label: CI / workflow automation
+    validations:
+      required: true
+  - type: textarea
+    id: standards
+    attributes:
+      label: Standards or references
+      description: Link the docs, examples, or upstream references that should guide the work.
+      placeholder: Include awesome-copilot examples, GitHub docs, or other standards.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      placeholder: |
+        - [ ] ...
+        - [ ] ...
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Pre-submission checks
+      options:
+        - label: I checked awesome-copilot for prior art first.
+          required: true
+        - label: I did not include secrets, tokens, or real credentials.
+          required: true
