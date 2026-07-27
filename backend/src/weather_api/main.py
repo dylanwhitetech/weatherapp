@@ -7,6 +7,7 @@ from loguru import logger
 
 from weather_api.config import get_settings
 from weather_api.services.cache import WeatherDataUnavailable
+from weather_api.services.maps import MapLayerError
 from weather_api.services.weather import WeatherService
 from weather_api.telemetry import configure_logging, record_request, render_metrics
 
@@ -116,3 +117,63 @@ async def get_alerts(request: Request):
 async def get_recommendations(request: Request):
     weather = await get_weather(request)
     return weather.recommendations
+
+
+@app.get("/api/v1/maps/tiles/{layer_id}/{z}/{x}/{y}.png")
+async def get_map_tile(request: Request, layer_id: str, z: int, x: int, y: int):
+    service = _get_service(request)
+    try:
+        tile_payload, content_type = await service.get_map_tile(layer_id=layer_id, z=z, x=x, y=y)
+    except MapLayerError as error:
+        raise HTTPException(
+            status_code=error.status_code,
+            detail={"code": "map_layer_error", "message": str(error)},
+        ) from error
+    return Response(
+        content=tile_payload,
+        media_type=content_type,
+        headers={"Cache-Control": "public, max-age=300"},
+    )
+
+
+@app.get("/api/v1/maps/fires")
+async def get_map_fires(request: Request):
+    service = _get_service(request)
+    try:
+        return await service.get_fires_overlay()
+    except MapLayerError as error:
+        raise HTTPException(
+            status_code=error.status_code,
+            detail={"code": "map_layer_error", "message": str(error)},
+        ) from error
+
+
+@app.get("/api/v1/maps/air-quality")
+async def get_map_air_quality(request: Request):
+    service = _get_service(request)
+    try:
+        return await service.get_air_quality_overlay()
+    except MapLayerError as error:
+        raise HTTPException(
+            status_code=error.status_code,
+            detail={"code": "map_layer_error", "message": str(error)},
+        ) from error
+
+
+@app.get("/api/v1/maps/observations/{metric}")
+async def get_map_observations(request: Request, metric: str):
+    if metric not in {"temperature", "wind"}:
+        raise HTTPException(
+            status_code=404,
+            detail={"code": "map_layer_error", "message": f"Unknown observation metric: {metric}"},
+        )
+
+    service = _get_service(request)
+    observation_metric = "temperature" if metric == "temperature" else "wind"
+    try:
+        return await service.get_observation_overlay(observation_metric)
+    except MapLayerError as error:
+        raise HTTPException(
+            status_code=error.status_code,
+            detail={"code": "map_layer_error", "message": str(error)},
+        ) from error

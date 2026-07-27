@@ -9,6 +9,9 @@ services:
       - "8000:8000"
     environment:
       - NWS_USER_AGENT=${NWS_USER_AGENT:-weatherapp-local (replace-with-contact@example.com)}
+      - AIRNOW_API_KEY=${AIRNOW_API_KEY:-}
+      - AIRNOW_BASE_URL=${AIRNOW_BASE_URL:-https://www.airnowapi.org}
+      - AIRNOW_SEARCH_DISTANCE_MILES=${AIRNOW_SEARCH_DISTANCE_MILES:-75}
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health/live')"]
       interval: 10s

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { fetchWeather, isWeatherRequestError } from './api'
 import './App.css'
+import { MapPanel } from './components/MapPanel'
 import type { ForecastPeriod, WeatherPayload } from './types'
 
 function App() {
@@ -63,6 +64,7 @@ function App() {
   }
 
   useEffect(() => {
+    isMountedRef.current = true
     loadWeather(false)
     const timer = window.setInterval(() => {
       loadWeather(true)
@@ -124,6 +126,8 @@ function App() {
           <strong>Stale data:</strong> {payload.metadata.status_message ?? 'Showing last known weather data.'}
         </section>
       )}
+
+      <MapPanel location={payload.location} timezone={timezone} mapPanel={payload.map_panel} />
 
       <section className="grid">
         <article className="card">

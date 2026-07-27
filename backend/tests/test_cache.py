@@ -8,6 +8,10 @@ from weather_api.models import (
     GolfRecommendation,
     LawnRecommendation,
     Location,
+    MapLayer,
+    MapLayerLegend,
+    MapLegendEntry,
+    MapPanel,
     Recommendations,
     WeatherMetadata,
     WeatherPayload,
@@ -51,6 +55,33 @@ def _payload() -> WeatherPayload:
             last_successful_refresh=now,
             stale=False,
             cache_age_seconds=0,
+        ),
+        map_panel=MapPanel(
+            default_layer_id="temperature",
+            cycle_seconds=8,
+            zoom=6,
+            overlay_opacity=0.65,
+            layers=[
+                MapLayer(
+                    id="temperature",
+                    label="Temp",
+                    kind="observation-points",
+                    description="Observed station temperatures near the configured location",
+                    enabled=True,
+                    unavailable_reason=None,
+                    tile_url=None,
+                    data_url="/api/v1/maps/observations/temperature",
+                    source="National Weather Service Observations",
+                    attribution="Observation data © NOAA/NWS",
+                    updated_at=now,
+                    legend=MapLayerLegend(
+                        title="Temperature",
+                        units="°F",
+                        entries=[MapLegendEntry(label="Mild", color="#22c55e")],
+                        note=None,
+                    ),
+                )
+            ],
         ),
     )
 
