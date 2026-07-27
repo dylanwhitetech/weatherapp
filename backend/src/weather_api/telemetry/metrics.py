@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from prometheus_client import CONTENT_TYPE_LATEST, Counter, Gauge, Histogram, generate_latest
 
@@ -101,7 +101,7 @@ def set_cache_state(*, cache_age_seconds: int, last_successful_refresh: datetime
 
     ts = last_successful_refresh
     if ts.tzinfo is None:
-        ts = ts.replace(tzinfo=timezone.utc)
+        ts = ts.replace(tzinfo=UTC)
     LAST_SUCCESSFUL_REFRESH_TIMESTAMP_SECONDS.set(ts.timestamp())
 
 

@@ -1,6 +1,5 @@
 from weather_api.models import Alert, CurrentConditions, ForecastPeriod, LawnRecommendation
 
-
 DISCLAIMER = (
     "Estimate only; adjust for soil, grass type, shade, and local watering restrictions."
 )

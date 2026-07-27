@@ -82,6 +82,19 @@ make backend-test        # pytest
 make frontend-test       # vitest (CI mode, no watch)
 ```
 
+Run the same quality gates enforced by CI:
+
+```bash
+# Backend lint
+cd backend && python -m ruff check src tests
+
+# Frontend lint
+cd frontend && npm run lint
+
+# Helm chart lint
+helm lint deploy/chart/weatherapp
+```
+
 Or individually:
 
 ```bash

@@ -37,7 +37,7 @@ class NwsClient:
                 response.raise_for_status()
                 payload = response.json()
                 if not isinstance(payload, dict):
-                    raise ValueError("NWS response was not a JSON object")
+                    raise TypeError("NWS response was not a JSON object")
 
                 record_upstream(
                     endpoint_name,
