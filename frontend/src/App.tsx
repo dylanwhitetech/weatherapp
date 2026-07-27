@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react'
-import { fetchWeather } from './api'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { fetchWeather, isWeatherRequestError } from './api'
 import './App.css'
 import type { ForecastPeriod, WeatherPayload } from './types'
 
@@ -8,23 +8,57 @@ function App() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [refreshing, setRefreshing] = useState(false)
+  const activeRequestControllerRef = useRef<AbortController | null>(null)
+  const activeRequestIdRef = useRef(0)
+  const isMountedRef = useRef(true)
+  const payloadRef = useRef<WeatherPayload | null>(null)
 
   async function loadWeather(showRefreshing: boolean) {
-    if (showRefreshing) {
+    const shouldShowRefreshing = showRefreshing && payloadRef.current !== null
+    const controller = new AbortController()
+    const requestId = activeRequestIdRef.current + 1
+
+    activeRequestControllerRef.current?.abort()
+    activeRequestControllerRef.current = controller
+    activeRequestIdRef.current = requestId
+    setError(null)
+
+    if (shouldShowRefreshing) {
       setRefreshing(true)
     } else {
       setLoading(true)
     }
 
     try {
-      const nextPayload = await fetchWeather()
+      const nextPayload = await fetchWeather(controller.signal)
+      if (!isMountedRef.current || requestId !== activeRequestIdRef.current) {
+        return
+      }
+
+      payloadRef.current = nextPayload
       setPayload(nextPayload)
       setError(null)
-    } catch {
-      setError('Unable to load weather data right now.')
+    } catch (nextError) {
+      if (!isMountedRef.current || requestId !== activeRequestIdRef.current) {
+        return
+      }
+
+      if (isWeatherRequestError(nextError) && nextError.code === 'aborted') {
+        return
+      }
+
+      payloadRef.current = null
+      setPayload(null)
+      setError(getErrorMessage(nextError))
     } finally {
-      setLoading(false)
-      setRefreshing(false)
+      if (isMountedRef.current && requestId === activeRequestIdRef.current) {
+        if (activeRequestControllerRef.current === controller) {
+          activeRequestControllerRef.current = null
+        }
+
+        setLoading(false)
+        setRefreshing(false)
+      }
     }
   }
 
@@ -33,7 +67,13 @@ function App() {
     const timer = window.setInterval(() => {
       loadWeather(true)
     }, 10 * 60 * 1000)
-    return () => window.clearInterval(timer)
+
+    return () => {
+      isMountedRef.current = false
+      window.clearInterval(timer)
+      activeRequestControllerRef.current?.abort()
+      activeRequestControllerRef.current = null
+    }
   }, [])
 
   const locationName = payload?.location.name ?? 'Weather'
@@ -185,6 +225,21 @@ function formatMaybeNumber(value: number | null, suffix: string): string {
     return 'N/A'
   }
   return `${Math.round(value)}${suffix}`
+}
+
+function getErrorMessage(error: unknown): string {
+  if (!isWeatherRequestError(error)) {
+    return 'Unable to load weather data right now.'
+  }
+
+  switch (error.code) {
+    case 'http':
+      return error.message
+    case 'timeout':
+      return 'Weather request timed out. Please try again.'
+    default:
+      return 'Unable to load weather data right now.'
+  }
 }
 
 function formatDateTime(value: string, timezone: string): string {
