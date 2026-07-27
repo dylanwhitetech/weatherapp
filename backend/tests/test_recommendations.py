@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from weather_api.models import Alert, CurrentConditions, ForecastPeriod
 from weather_api.services.golf import calculate_golf_recommendation
@@ -6,7 +6,7 @@ from weather_api.services.lawn import calculate_lawn_recommendation
 
 
 def _hour_period(*, offset_hours: int, precip: float, temp: float, wind: float, condition: str) -> ForecastPeriod:
-    start = datetime(2026, 7, 18, 12, 0, tzinfo=timezone.utc) + timedelta(hours=offset_hours)
+    start = datetime(2026, 7, 18, 12, 0, tzinfo=UTC) + timedelta(hours=offset_hours)
     end = start + timedelta(hours=1)
     return ForecastPeriod(
         start=start,

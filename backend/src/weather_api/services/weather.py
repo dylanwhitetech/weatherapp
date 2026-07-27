@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 import httpx
@@ -64,7 +64,7 @@ class WeatherService:
             lawn=calculate_lawn_recommendation(hourly=hourly, current=current, alerts=alerts),
         )
 
-        generated_at = datetime.now(timezone.utc)
+        generated_at = datetime.now(UTC)
         metadata = WeatherMetadata(
             source="National Weather Service",
             generated_at=generated_at,
@@ -202,11 +202,11 @@ def _parse_datetime(value: Any) -> datetime | None:
     if not isinstance(value, str):
         return None
     try:
-        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+        parsed = datetime.fromisoformat(value)
     except ValueError:
         return None
     if parsed.tzinfo is None:
-        return parsed.replace(tzinfo=timezone.utc)
+        return parsed.replace(tzinfo=UTC)
     return parsed
 
 

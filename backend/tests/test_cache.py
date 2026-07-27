@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 
@@ -16,7 +16,7 @@ from weather_api.services.cache import WeatherCache, WeatherDataUnavailable
 
 
 def _payload() -> WeatherPayload:
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     return WeatherPayload(
         location=Location(
             name="Walla Walla, WA",

@@ -1,7 +1,7 @@
 import asyncio
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
-from datetime import datetime, timezone
-from typing import Awaitable, Callable
+from datetime import UTC, datetime
 
 from weather_api.models import WeatherMetadata, WeatherPayload
 from weather_api.telemetry import record_cache_hit, record_cache_miss, set_cache_state
@@ -69,7 +69,7 @@ class WeatherCache:
     def _age_seconds(self) -> int:
         if self._last_successful_refresh is None:
             return 0
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         return max(0, int((now - self._last_successful_refresh).total_seconds()))
 
     async def _get_or_create_refresh_task(
@@ -112,7 +112,7 @@ class WeatherCache:
             raise WeatherDataUnavailable("No cache payload exists")
 
         age_seconds = self._age_seconds()
-        generated_at = generated_override or datetime.now(timezone.utc)
+        generated_at = generated_override or datetime.now(UTC)
         metadata = WeatherMetadata(
             source=self._payload.metadata.source,
             generated_at=generated_at,

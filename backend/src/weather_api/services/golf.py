@@ -139,7 +139,7 @@ def _select_best_window(scores: list[HourScore]) -> HourScore:
     best_period = best.period
 
     for window_size in (2, 3):
-        for index in range(0, len(scores) - window_size + 1):
+        for index in range(len(scores) - window_size + 1):
             chunk = scores[index : index + window_size]
             avg = sum(item.score for item in chunk) / window_size
             if avg > best_window_score:
