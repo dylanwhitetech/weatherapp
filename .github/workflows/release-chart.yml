@@ -20,6 +20,9 @@ permissions:
 jobs:
   publish-release:
     runs-on: ubuntu-latest
+    outputs:
+      chart_version: ${{ steps.release_meta.outputs.chart_version }}
+      source_sha: ${{ steps.release_meta.outputs.source_sha }}
     env:
       API_IMAGE: ghcr.io/${{ github.repository_owner }}/weatherapp-api
       WEB_IMAGE: ghcr.io/${{ github.repository_owner }}/weatherapp-web
@@ -29,6 +32,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Resolve release version and source SHA
+        id: release_meta
         shell: bash
         run: |
           if [[ "${GITHUB_EVENT_NAME}" == "push" ]]; then
@@ -46,6 +50,8 @@ jobs:
 
           echo "CHART_VERSION=${VERSION}" >> "${GITHUB_ENV}"
           echo "SOURCE_SHA=${SOURCE_SHA}" >> "${GITHUB_ENV}"
+          echo "chart_version=${VERSION}" >> "${GITHUB_OUTPUT}"
+          echo "source_sha=${SOURCE_SHA}" >> "${GITHUB_OUTPUT}"
           echo "Resolved CHART_VERSION=${VERSION}, SOURCE_SHA=${SOURCE_SHA}"
 
       - uses: docker/setup-qemu-action@v3
@@ -122,4 +128,128 @@ jobs:
             echo "- OCI registry: \`${CHART_REGISTRY}\`"
             echo "- API image: \`${API_IMAGE}:${SOURCE_SHA}\`"
             echo "- Web image: \`${WEB_IMAGE}:${SOURCE_SHA}\`"
+          } >> "${GITHUB_STEP_SUMMARY}"
+
+  open-infra-promotion-pr:
+    needs: publish-release
+    if: ${{ needs.publish-release.result == 'success' && vars.K3S_INFRA_REPO != '' }}
+    runs-on: ubuntu-latest
+    env:
+      CHART_VERSION: ${{ needs.publish-release.outputs.chart_version }}
+      SOURCE_SHA: ${{ needs.publish-release.outputs.source_sha }}
+      INFRA_REPO: ${{ vars.K3S_INFRA_REPO }}
+      INFRA_BASE_BRANCH: ${{ vars.K3S_INFRA_BASE_BRANCH || 'main' }}
+      INFRA_HELMRELEASE_PATH: ${{ vars.K3S_INFRA_HELMRELEASE_PATH || 'kubernetes/apps/weatherapp/helmrelease.yaml' }}
+    steps:
+      - name: Validate infra token configuration
+        id: config
+        shell: bash
+        run: |
+          if [[ -z "${{ secrets.K3S_INFRA_REPO_TOKEN }}" ]]; then
+            echo "enabled=false" >> "${GITHUB_OUTPUT}"
+            {
+              echo "## Infra promotion PR skipped"
+              echo ""
+              echo "Missing required secret: \`K3S_INFRA_REPO_TOKEN\`."
+            } >> "${GITHUB_STEP_SUMMARY}"
+            exit 0
+          fi
+          echo "enabled=true" >> "${GITHUB_OUTPUT}"
+
+      - name: Checkout k3s-infrastructure
+        if: ${{ steps.config.outputs.enabled == 'true' }}
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.INFRA_REPO }}
+          ref: ${{ env.INFRA_BASE_BRANCH }}
+          path: infra
+          token: ${{ secrets.K3S_INFRA_REPO_TOKEN }}
+
+      - name: Bump HelmRelease chart version
+        if: ${{ steps.config.outputs.enabled == 'true' }}
+        shell: bash
+        run: |
+          python - <<'PY'
+          import os
+          import re
+          from pathlib import Path
+
+          chart_version = os.environ["CHART_VERSION"]
+          relative_path = os.environ["INFRA_HELMRELEASE_PATH"]
+          target_path = Path("infra") / relative_path
+          if not target_path.exists():
+              raise SystemExit(f"HelmRelease path not found: {relative_path}")
+
+          lines = target_path.read_text(encoding="utf-8").splitlines()
+          stack: list[tuple[int, str]] = []
+          updated = False
+
+          for index, line in enumerate(lines):
+              match = re.match(r"^(\s*)([A-Za-z0-9_.-]+):(?:\s*(.*))?$", line)
+              if not match:
+                  continue
+
+              indent = len(match.group(1))
+              key = match.group(2)
+              value = match.group(3) or ""
+
+              while stack and stack[-1][0] >= indent:
+                  stack.pop()
+
+              parent_keys = [entry[1] for entry in stack]
+              if key == "version" and parent_keys[-3:] == ["spec", "chart", "spec"]:
+                  quoted = "\"" in value
+                  rendered_value = f"\"{chart_version}\"" if quoted else chart_version
+                  lines[index] = f"{match.group(1)}version: {rendered_value}"
+                  updated = True
+                  break
+
+              stack.append((indent, key))
+
+          if not updated:
+              raise SystemExit(
+                  f"Could not find spec.chart.spec.version in {relative_path}"
+              )
+
+          target_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+          PY
+
+      - name: Create or update infra promotion PR
+        if: ${{ steps.config.outputs.enabled == 'true' }}
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.K3S_INFRA_REPO_TOKEN }}
+          path: infra
+          base: ${{ env.INFRA_BASE_BRANCH }}
+          branch: automation/weatherapp-chart-${{ env.CHART_VERSION }}
+          delete-branch: false
+          commit-message: "chore(weatherapp): promote chart to ${{ env.CHART_VERSION }}"
+          title: "chore(weatherapp): promote weatherapp chart ${{ env.CHART_VERSION }}"
+          body: |
+            Automated promotion PR opened by `${{ github.repository }}`.
+
+            - Chart: `weatherapp`
+            - Version: `${{ env.CHART_VERSION }}`
+            - Source SHA: `${{ env.SOURCE_SHA }}`
+            - Registry: `oci://ghcr.io/${{ github.repository_owner }}/charts`
+            - HelmRelease path: `${{ env.INFRA_HELMRELEASE_PATH }}`
+
+            This updates `spec.chart.spec.version` to the released chart version.
+
+  open-infra-promotion-pr-skipped:
+    needs: publish-release
+    if: ${{ needs.publish-release.result == 'success' && vars.K3S_INFRA_REPO == '' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Emit skip summary
+        shell: bash
+        run: |
+          {
+            echo "## Infra promotion PR skipped"
+            echo ""
+            echo "Configure the following to enable automatic PR creation in k3s-infrastructure:"
+            echo "- Repository variable: \`K3S_INFRA_REPO\` (for example \`dylanwhitetech/k3s-infrastructure\`)"
+            echo "- Secret: \`K3S_INFRA_REPO_TOKEN\` (PAT with access to the infra repo)"
+            echo "- Optional variable: \`K3S_INFRA_BASE_BRANCH\` (default: \`main\`)"
+            echo "- Optional variable: \`K3S_INFRA_HELMRELEASE_PATH\` (default: \`kubernetes/apps/weatherapp/helmrelease.yaml\`)"
           } >> "${GITHUB_STEP_SUMMARY}"
