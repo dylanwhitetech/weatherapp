@@ -5,6 +5,7 @@ from typing import Any
 from urllib.parse import urlparse
 
 import httpx
+from loguru import logger
 
 from weather_api.config import Settings
 from weather_api.telemetry import record_upstream
@@ -28,6 +29,13 @@ class NwsClient:
 
         for attempt in range(attempts):
             started = time.perf_counter()
+            logger.debug(
+                "NWS request attempt",
+                endpoint=endpoint_name,
+                attempt=attempt + 1,
+                of=attempts,
+                url=url,
+            )
             try:
                 response = await self._http_client.get(
                     url,
@@ -39,22 +47,44 @@ class NwsClient:
                 if not isinstance(payload, dict):
                     raise TypeError("NWS response was not a JSON object")
 
+                duration = time.perf_counter() - started
                 record_upstream(
                     endpoint_name,
                     success=True,
-                    duration_seconds=time.perf_counter() - started,
+                    duration_seconds=duration,
+                )
+                logger.debug(
+                    "NWS request succeeded",
+                    endpoint=endpoint_name,
+                    duration_ms=round(duration * 1000, 1),
                 )
                 return payload
             except (httpx.HTTPError, ValueError) as error:
+                duration = time.perf_counter() - started
                 record_upstream(
                     endpoint_name,
                     success=False,
-                    duration_seconds=time.perf_counter() - started,
+                    duration_seconds=duration,
                     error_type=error.__class__.__name__,
                 )
-                if attempt == attempts - 1:
+                is_final = attempt == attempts - 1
+                if is_final:
+                    logger.error(
+                        "NWS request failed",
+                        endpoint=endpoint_name,
+                        error_type=error.__class__.__name__,
+                        attempts=attempts,
+                    )
                     raise
-                await asyncio.sleep(backoff * (2**attempt) + random.uniform(0, 0.1))
+                delay = backoff * (2**attempt) + random.uniform(0, 0.1)
+                logger.warning(
+                    "NWS request error, retrying",
+                    endpoint=endpoint_name,
+                    error_type=error.__class__.__name__,
+                    attempt=attempt + 1,
+                    delay_s=round(delay, 2),
+                )
+                await asyncio.sleep(delay)
 
         raise RuntimeError("Unreachable retry state")
 

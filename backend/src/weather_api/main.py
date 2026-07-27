@@ -3,18 +3,22 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse, Response
+from loguru import logger
 
 from weather_api.config import get_settings
 from weather_api.services.cache import WeatherDataUnavailable
 from weather_api.services.weather import WeatherService
-from weather_api.telemetry import record_request, render_metrics
+from weather_api.telemetry import configure_logging, record_request, render_metrics
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     settings = get_settings()
+    configure_logging(settings.log_level)
+    logger.info("weather-api starting", log_level=settings.log_level)
     app.state.weather_service = WeatherService(settings)
     yield
+    logger.info("weather-api shutting down")
     await app.state.weather_service.shutdown()
 
 

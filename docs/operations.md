@@ -54,6 +54,12 @@ curl http://weather.home.arpa/
 helm rollback weatherapp <revision> -n weather
 ```
 
+## Incident troubleshooting
+
+See [runbook.md](runbook.md) for step-by-step diagnosis of common failures
+(NWS outages, stale data, crash loops, no data on startup) and Prometheus metric
+cross-references.
+
 ## OCI chart release process
 
 Chart releases are published by CI to GHCR as OCI artifacts:

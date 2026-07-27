@@ -1,3 +1,4 @@
+from .logging import configure_logging
 from .metrics import (
     record_cache_hit,
     record_cache_miss,
@@ -9,6 +10,7 @@ from .metrics import (
 )
 
 __all__ = [
+    "configure_logging",
     "record_cache_hit",
     "record_cache_miss",
     "record_request",
