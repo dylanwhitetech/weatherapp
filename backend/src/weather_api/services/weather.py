@@ -7,17 +7,22 @@ from loguru import logger
 from weather_api.clients import NwsClient
 from weather_api.config import Settings
 from weather_api.models import (
+    AirQualityOverlayPayload,
     Alert,
     CurrentConditions,
+    FiresOverlayPayload,
     ForecastPeriod,
     Location,
+    ObservationMetric,
     Recommendations,
     WeatherMetadata,
+    WeatherObservationOverlayPayload,
     WeatherPayload,
 )
 from weather_api.services.cache import WeatherCache
 from weather_api.services.golf import calculate_golf_recommendation
 from weather_api.services.lawn import calculate_lawn_recommendation
+from weather_api.services.maps import MapService
 from weather_api.telemetry import set_weather_metrics
 
 
@@ -30,6 +35,7 @@ class WeatherService:
             ttl_seconds=settings.cache_ttl_seconds,
             stale_max_seconds=settings.stale_data_max_seconds,
         )
+        self._maps = MapService(self._http_client, settings)
 
     async def shutdown(self) -> None:
         await self._http_client.aclose()
@@ -38,6 +44,18 @@ class WeatherService:
         payload = await self._cache.get_weather(self._fetch_fresh_weather)
         set_weather_metrics(payload)
         return payload
+
+    async def get_map_tile(self, layer_id: str, z: int, x: int, y: int) -> tuple[bytes, str]:
+        return await self._maps.fetch_tile(layer_id=layer_id, z=z, x=x, y=y)
+
+    async def get_fires_overlay(self) -> FiresOverlayPayload:
+        return await self._maps.get_fires_overlay()
+
+    async def get_air_quality_overlay(self) -> AirQualityOverlayPayload:
+        return await self._maps.get_air_quality_overlay()
+
+    async def get_observation_overlay(self, metric: ObservationMetric) -> WeatherObservationOverlayPayload:
+        return await self._maps.get_observation_overlay(metric)
 
     def ready_status(self) -> tuple[bool, str]:
         status = self._cache.get_status()
@@ -95,6 +113,7 @@ class WeatherService:
             alerts=alerts,
             recommendations=recommendations,
             metadata=metadata,
+            map_panel=self._maps.build_map_panel(generated_at),
         )
 
 

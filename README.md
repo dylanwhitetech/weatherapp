@@ -121,6 +121,6 @@ Production handoff uses an OCI-published chart and Flux chart version pinning in
 
 - OCI chart target: `oci://ghcr.io/dylanwhitetech/charts`
 - Chart name: `weatherapp`
-- Infra promotion model: bump `spec.chart.spec.version` in `kubernetes/apps/weatherapp/helmrelease.yaml`
+- Infra promotion model: release workflow can auto-open an infra PR to bump `spec.chart.spec.version` in `kubernetes/apps/weatherapp/helmrelease.yaml`
 
 See `docs/operations.md` for release and handoff details.

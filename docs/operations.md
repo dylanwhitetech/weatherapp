@@ -96,13 +96,26 @@ Infra does **not** override `api.image.*` or `web.image.*`; those are embedded b
 
 ## Release handoff to k3s-infrastructure
 
-After a successful chart release:
+After a successful chart release, this repo can automatically open/update an infra PR that bumps `spec.chart.spec.version`.
 
-1. Send infra the exact published chart version (for example `0.2.0`).
-2. Infra promotes by bumping:
-   - `kubernetes/apps/weatherapp/helmrelease.yaml`
-   - `spec.chart.spec.version: "<released-version>"`
-3. Infra reconciles Flux and validates workload rollout.
+### Enabling automated infra PR creation
+
+Configure these in the `weatherapp` repository:
+
+- Repository variable: `K3S_INFRA_REPO` (for example `dylanwhitetech/k3s-infrastructure`)
+- Secret: `K3S_INFRA_REPO_TOKEN` (PAT with write access to the infra repo contents + pull requests)
+- Optional repository variable: `K3S_INFRA_BASE_BRANCH` (default: `main`)
+- Optional repository variable: `K3S_INFRA_HELMRELEASE_PATH` (default: `kubernetes/apps/weatherapp/helmrelease.yaml`)
+
+When configured, `.github/workflows/release-chart.yml` creates or updates an infra PR on branch `automation/weatherapp-chart-<version>`.
+
+### Manual fallback
+
+If auto PR wiring is not configured, promote manually after release:
+
+1. Update `kubernetes/apps/weatherapp/helmrelease.yaml`.
+2. Set `spec.chart.spec.version: "<released-version>"`.
+3. Open and merge the infra PR, then reconcile Flux and validate rollout.
 
 ## GHCR access note
 
