@@ -3,6 +3,8 @@ from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime
 
+from loguru import logger
+
 from weather_api.models import WeatherMetadata, WeatherPayload
 from weather_api.telemetry import record_cache_hit, record_cache_miss, set_cache_state
 
@@ -33,9 +35,11 @@ class WeatherCache:
     ) -> WeatherPayload:
         if self._is_fresh():
             record_cache_hit()
+            logger.debug("Cache hit", cache_age_seconds=self._age_seconds())
             return self._annotated_payload(stale=False, status_message=None)
 
         record_cache_miss()
+        logger.info("Cache miss, refreshing weather data")
         refresh_task = await self._get_or_create_refresh_task(fetch_fresh)
         try:
             payload = await refresh_task
@@ -47,10 +51,21 @@ class WeatherCache:
         except Exception as error:
             status = self.get_status()
             if status.has_data and status.age_seconds <= self._stale_max_seconds:
+                logger.warning(
+                    "Serving stale weather data",
+                    error_type=error.__class__.__name__,
+                    cache_age_seconds=status.age_seconds,
+                )
                 return self._annotated_payload(
                     stale=True,
                     status_message=f"Serving stale weather data due to upstream error: {error.__class__.__name__}",
                 )
+            logger.error(
+                "Weather data unavailable",
+                error_type=error.__class__.__name__,
+                has_cached_data=status.has_data,
+                cache_age_seconds=status.age_seconds,
+            )
             raise WeatherDataUnavailable("No usable weather data is available") from error
 
     def get_status(self) -> CacheStatus:
@@ -94,6 +109,7 @@ class WeatherCache:
             last_successful_refresh=self._last_successful_refresh,
             stale=False,
         )
+        logger.info("Weather cache refreshed successfully")
         return payload
 
     async def _return_cached(self) -> WeatherPayload:

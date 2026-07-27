@@ -2,6 +2,7 @@ from datetime import UTC, datetime
 from typing import Any
 
 import httpx
+from loguru import logger
 
 from weather_api.clients import NwsClient
 from weather_api.config import Settings
@@ -71,6 +72,14 @@ class WeatherService:
             last_successful_refresh=generated_at,
             stale=False,
             cache_age_seconds=0,
+        )
+
+        logger.info(
+            "Fresh weather data fetched",
+            location=self._settings.weather_location_name,
+            hourly_periods=len(hourly),
+            daily_periods=len(daily),
+            alerts=len(alerts),
         )
 
         return WeatherPayload(

@@ -98,6 +98,20 @@ This repo keeps runtime skills under `.github/skills/` rather than a root
 - Reuse `_mps_to_mph`, `_c_to_f`, `_wind_direction`, and `_parse_wind_values`
   when those conversions apply.
 
+### Structured logging
+
+- Use **loguru** for all backend logging: `from loguru import logger`.
+- Call `configure_logging(settings.log_level)` once at application startup
+  (see `weather_api.telemetry.configure_logging`). This emits NDJSON to stdout,
+  readable by Loki and other log aggregators in k3s.
+- Log level is controlled by the `LOG_LEVEL` environment variable (default `INFO`).
+  Set `LOG_LEVEL=DEBUG` to enable per-request NWS URL tracing.
+- Pass contextual fields as keyword arguments: `logger.info("msg", key=value)`.
+  Use `logger.bind(key=value)` to attach fields for the duration of a scope.
+- **Never log credentials, tokens, or personally identifiable information.**
+- Prefer `logger.warning` for recoverable degraded states (stale data, retries)
+  and `logger.error` for unrecoverable failures (no data available, final upstream error).
+
 ### Frontend
 
 - TypeScript, React, and Vite are the default frontend stack.
@@ -127,3 +141,4 @@ This repo keeps runtime skills under `.github/skills/` rather than a root
 - `.github/copilot-instructions.md`
 - `.github/skills/weatherapp-local-preflight/SKILL.md`
 - `agents/weatherapp-code-review.agent.md`
+- `docs/runbook.md`
