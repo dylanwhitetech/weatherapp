@@ -23,7 +23,7 @@ async def lifespan(app: FastAPI):
     await app.state.weather_service.shutdown()
 
 
-app = FastAPI(title="weather-api", version="0.1.0", lifespan=lifespan)
+app = FastAPI(title="weather-api", version="0.1.2", lifespan=lifespan)
 
 
 @app.middleware("http")
