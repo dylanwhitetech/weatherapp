@@ -1,3 +1,4 @@
+import asyncio
 import time
 from contextlib import asynccontextmanager
 
@@ -11,16 +12,57 @@ from weather_api.services.maps import MapLayerError
 from weather_api.services.weather import WeatherService
 from weather_api.telemetry import configure_logging, record_request, render_metrics
 
+REFRESH_BACKOFF_INITIAL_SECONDS = 1.0
+REFRESH_BACKOFF_MAX_SECONDS = 60.0
+
+
+async def _weather_refresh_loop(service: WeatherService, interval_seconds: float) -> None:
+    """Keep the weather cache populated without depending on inbound traffic.
+
+    ``/health/ready`` only reports ready once a refresh has succeeded. Without this
+    loop the pod never becomes ready on its own, so it is never added to the Service
+    endpoints, so nothing ever calls it -- a startup deadlock that makes every
+    rollout time out.
+    """
+    backoff = REFRESH_BACKOFF_INITIAL_SECONDS
+    while True:
+        try:
+            await service.get_dashboard_weather()
+        except asyncio.CancelledError:
+            raise
+        except Exception as exc:  # noqa: BLE001 - refresh must never kill the loop
+            logger.warning(
+                "background weather refresh failed",
+                error=str(exc),
+                retry_in_seconds=backoff,
+            )
+            await asyncio.sleep(backoff)
+            backoff = min(backoff * 2, REFRESH_BACKOFF_MAX_SECONDS)
+            continue
+
+        backoff = REFRESH_BACKOFF_INITIAL_SECONDS
+        await asyncio.sleep(interval_seconds)
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     settings = get_settings()
     configure_logging(settings.log_level)
     logger.info("weather-api starting", log_level=settings.log_level)
-    app.state.weather_service = WeatherService(settings)
+    service = WeatherService(settings)
+    app.state.weather_service = service
+    app.state.weather_refresh_task = asyncio.create_task(
+        _weather_refresh_loop(service, settings.cache_ttl_seconds)
+    )
     yield
     logger.info("weather-api shutting down")
-    await app.state.weather_service.shutdown()
+    refresh_task = app.state.weather_refresh_task
+    refresh_task.cancel()
+    try:
+        await refresh_task
+    except asyncio.CancelledError:
+        pass
+    await service.shutdown()
 
 
 app = FastAPI(title="weather-api", version="0.1.2", lifespan=lifespan)
