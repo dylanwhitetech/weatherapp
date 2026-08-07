@@ -23,7 +23,7 @@ api:
     WEATHER_LATITUDE: "46.0646"
     WEATHER_LONGITUDE: "-118.3430"
     WEATHER_TIMEZONE: "America/Los_Angeles"
-    NWS_USER_AGENT: "weatherapp/0.1 (replace-with-contact@example.com)"
+    NWS_USER_AGENT: "dylanwhitetech@gmail.com"
     CACHE_TTL_SECONDS: "600"
     STALE_DATA_MAX_SECONDS: "3600"
     LOG_LEVEL: "INFO"
