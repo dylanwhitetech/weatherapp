@@ -18,6 +18,17 @@ api:
     limits:
       cpu: 250m
       memory: 256Mi
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    runAsGroup: 1000
+    fsGroup: 1000
+  containerSecurityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+    readOnlyRootFilesystem: true
   env:
     WEATHER_LOCATION_NAME: "Walla Walla, WA"
     WEATHER_LATITUDE: "46.0646"
@@ -45,6 +56,17 @@ web:
     limits:
       cpu: 100m
       memory: 64Mi
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 101
+    runAsGroup: 101
+    fsGroup: 101
+  containerSecurityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+    readOnlyRootFilesystem: false
 
 ingress:
   enabled: true

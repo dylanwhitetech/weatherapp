@@ -22,7 +22,7 @@ spec:
         {{- toYaml .Values.imagePullSecrets | nindent 8 }}
       {{- end }}
       securityContext:
-        runAsNonRoot: true
+        {{- toYaml .Values.web.podSecurityContext | nindent 8 }}
       containers:
         - name: weather-web
           image: {{ include "weatherapp.imageRef" .Values.web.image | quote }}
@@ -45,8 +45,4 @@ spec:
           resources:
             {{- toYaml .Values.web.resources | nindent 12 }}
           securityContext:
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop:
-                - ALL
-            readOnlyRootFilesystem: true
+            {{- toYaml .Values.web.containerSecurityContext | nindent 12 }}
