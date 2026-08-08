@@ -38,14 +38,23 @@ helm upgrade --install weatherapp ./deploy/chart/weatherapp \
   --set web.image.tag=<sha-tag>
 ```
 
+## Deployed access
+
+The deployed WeatherApp is available at <https://weatherapp.dylanlabs.dev>.
+The public hostname, DNS, TLS, Cloudflare Tunnel, and Kubernetes exposure are
+environment-specific and owned by
+[`dylanwhitetech/k3s-infrastructure#22`](https://github.com/dylanwhitetech/k3s-infrastructure/issues/22).
+
 ## Basic verification
 
 ```bash
 kubectl -n weather get pods,svc,ingress
 kubectl -n weather rollout status deploy/weatherapp-weatherapp-api
 kubectl -n weather rollout status deploy/weatherapp-weatherapp-web
-curl http://weather.home.arpa/api/v1/weather
-curl http://weather.home.arpa/
+curl https://weatherapp.dylanlabs.dev/api/health/live
+curl https://weatherapp.dylanlabs.dev/api/health/ready
+curl https://weatherapp.dylanlabs.dev/api/v1/weather
+curl https://weatherapp.dylanlabs.dev/
 ```
 
 ## Rollback
