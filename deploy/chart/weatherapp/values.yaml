@@ -71,7 +71,7 @@ web:
 ingress:
   enabled: true
   className: nginx
-  host: weather.home.arpa
+  host: weatherapp.dylanlabs.dev
   annotations: {}
 
 serviceMonitor:
