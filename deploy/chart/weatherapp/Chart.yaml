@@ -2,7 +2,7 @@ apiVersion: v2
 name: weatherapp
 description: Helm chart for weatherapp API and web dashboard
 type: application
-# Placeholders: release-chart.yml stamps the real version from the vX.Y.Z tag
-# and appVersion from the release commit SHA. Do not bump these by hand.
-version: 0.0.0-dev
-appVersion: "dev"
+# Managed by release-please; do not bump by hand. The published chart's
+# appVersion is overwritten with the release commit SHA by release-chart.yml.
+version: 0.1.4 # x-release-please-version
+appVersion: "0.1.4" # x-release-please-version

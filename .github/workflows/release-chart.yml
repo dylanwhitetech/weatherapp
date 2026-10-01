@@ -1,9 +1,22 @@
 name: release-chart
 
+# Normally invoked by release.yml (release-please) via workflow_call. Tags
+# created with GITHUB_TOKEN do not trigger other workflows, so the tag trigger
+# only fires for manually pushed tags (fallback).
 on:
   push:
     tags:
       - "v*.*.*"
+  workflow_call:
+    inputs:
+      chart_version:
+        description: "Semver chart version (for example: 0.1.1)"
+        type: string
+        required: true
+      source_sha:
+        description: "Commit SHA for image tags and chart appVersion"
+        type: string
+        required: true
   workflow_dispatch:
     inputs:
       chart_version:
@@ -30,17 +43,24 @@ jobs:
       CHART_PATH: deploy/chart/weatherapp
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_sha || github.sha }}
 
       - name: Resolve release version and source SHA
         id: release_meta
         shell: bash
+        env:
+          INPUT_CHART_VERSION: ${{ inputs.chart_version }}
+          INPUT_SOURCE_SHA: ${{ inputs.source_sha }}
         run: |
-          if [[ "${GITHUB_EVENT_NAME}" == "push" ]]; then
+          # workflow_call inherits the caller's event name (push to main), so
+          # branch on the presence of inputs rather than GITHUB_EVENT_NAME.
+          if [[ -n "${INPUT_CHART_VERSION}" ]]; then
+            VERSION="${INPUT_CHART_VERSION#v}"
+            SOURCE_SHA="${INPUT_SOURCE_SHA:-${GITHUB_SHA}}"
+          else
             VERSION="${GITHUB_REF_NAME#v}"
             SOURCE_SHA="${GITHUB_SHA}"
-          else
-            VERSION="${{ github.event.inputs.chart_version }}"
-            SOURCE_SHA="${{ github.event.inputs.source_sha || github.sha }}"
           fi
 
           if [[ ! "${VERSION}" =~ ^[0-9]+\.[0-9]+\.[0-9]+([-.][0-9A-Za-z.-]+)?$ ]]; then

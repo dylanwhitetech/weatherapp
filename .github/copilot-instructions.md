@@ -90,7 +90,9 @@ cd backend && python -m ruff check src tests
 
 - `test.yml` enforces backend Ruff + tests, frontend lint + tests + build, Helm chart lint, and a kind-based chart smoke test (`chart-smoke`)
 - `images.yml` pushes SHA-tagged multi-arch images to GHCR on merge to `main`
-- `release-chart.yml` publishes the OCI Helm chart on semver tags
+- `release.yml` runs release-please: Conventional Commit PR titles (`feat:`/`fix:`) drive an auto-maintained release PR; merging it tags `vX.Y.Z` and calls `release-chart.yml`
+- `release-chart.yml` publishes the OCI Helm chart and opens the infra promotion PR
+- Never tag or bump versions by hand; release-please owns `.release-please-manifest.json` and `Chart.yaml`
 
 ## Deployment
 

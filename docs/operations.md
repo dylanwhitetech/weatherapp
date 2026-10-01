@@ -86,24 +86,29 @@ cross-references.
 1. Merge your PR to `main`. Every PR must pass `test.yml`, which includes
    `chart-smoke`: the chart is installed into a throwaway kind cluster with
    images built from that commit and must reach readiness.
-2. Tag the `main` commit you want to release (only tag a commit with green CI):
-
-   ```bash
-   git switch main && git pull
-   git tag v0.1.5        # next semver; check `git tag --sort=-v:refname | head -1`
-   git push origin v0.1.5
-   ```
-
-3. `release-chart.yml` publishes chart `0.1.5` with SHA-pinned images and
-   opens an infra PR, `chore(weatherapp): promote weatherapp chart 0.1.5`.
+   Use a Conventional Commit PR title: `fix:` cuts a patch release, `feat:` a
+   minor release (patch while pre-1.0), and `feat!:` a breaking release.
+   `docs:`, `ci:`, `chore:`, `test:` and `refactor:` do not cut a release.
+2. `release.yml` (release-please) opens or updates a PR named
+   `chore(main): release X.Y.Z` with the version bump and `CHANGELOG.md`.
+   Let releasable changes accumulate there; nothing ships until it is merged.
+3. Merge the release PR. release-please tags `vX.Y.Z`, creates the GitHub
+   Release, and calls `release-chart.yml`, which publishes chart `X.Y.Z` with
+   SHA-pinned images and opens an infra PR,
+   `chore(weatherapp): promote weatherapp chart X.Y.Z`.
 4. Merge that infra PR. Flux deploys it. If the new release fails readiness,
    Flux rolls back to the previous release automatically, and the HelmRelease
    stays `Ready=False` with the error until a fixed version is promoted.
 5. Rollback on purpose: revert the infra promotion PR.
 
-`Chart.yaml` holds placeholder versions (`0.0.0-dev`); the tag is the only
-source of the chart version. Images are tagged only with the commit SHA (no
-`:latest`).
+No manual tagging or version bumps. release-please owns the version in
+`.release-please-manifest.json` and `Chart.yaml`; images are tagged only with
+the commit SHA (no `:latest`). Fallback if automation is broken: run
+`release-chart` manually (workflow dispatch) with `chart_version` and
+`source_sha`.
+
+One-time repo setting required by release-please: **Settings → Actions →
+General → Allow GitHub Actions to create and approve pull requests**.
 
 ### Pipeline details
 
@@ -116,7 +121,8 @@ Chart releases are published by CI to GHCR as OCI artifacts:
 
 Release behavior:
 
-1. Triggered by a semver git tag (`vX.Y.Z`) or manual dispatch with `chart_version`.
+1. Called by `release.yml` when a release PR merges (also runs on a manually
+   pushed `vX.Y.Z` tag or manual dispatch with `chart_version`).
 2. Builds and pushes both images:
    - `ghcr.io/dylanwhitetech/weatherapp-api:<source_sha>`
    - `ghcr.io/dylanwhitetech/weatherapp-web:<source_sha>`
