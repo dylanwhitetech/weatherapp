@@ -81,6 +81,32 @@ cross-references.
 
 ## OCI chart release process
 
+### How to ship a change
+
+1. Merge your PR to `main`. Every PR must pass `test.yml`, which includes
+   `chart-smoke`: the chart is installed into a throwaway kind cluster with
+   images built from that commit and must reach readiness.
+2. Tag the `main` commit you want to release (only tag a commit with green CI):
+
+   ```bash
+   git switch main && git pull
+   git tag v0.1.5        # next semver; check `git tag --sort=-v:refname | head -1`
+   git push origin v0.1.5
+   ```
+
+3. `release-chart.yml` publishes chart `0.1.5` with SHA-pinned images and
+   opens an infra PR, `chore(weatherapp): promote weatherapp chart 0.1.5`.
+4. Merge that infra PR. Flux deploys it. If the new release fails readiness,
+   Flux rolls back to the previous release automatically, and the HelmRelease
+   stays `Ready=False` with the error until a fixed version is promoted.
+5. Rollback on purpose: revert the infra promotion PR.
+
+`Chart.yaml` holds placeholder versions (`0.0.0-dev`); the tag is the only
+source of the chart version. Images are tagged only with the commit SHA (no
+`:latest`).
+
+### Pipeline details
+
 Chart releases are published by CI to GHCR as OCI artifacts:
 
 - Chart path: `deploy/chart/weatherapp`

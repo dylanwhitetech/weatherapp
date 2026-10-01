@@ -54,3 +54,50 @@ jobs:
       - uses: azure/setup-helm@v4
       - name: Run Helm lint
         run: helm lint deploy/chart/weatherapp
+
+  # Installs the chart with images built from this commit into a throwaway
+  # cluster and waits for readiness, so broken probes, security contexts, or
+  # startup logic fail here instead of in k3s.
+  chart-smoke:
+    runs-on: ubuntu-latest
+    needs: helm-chart
+    timeout-minutes: 20
+    env:
+      RELEASE: weatherapp
+      NAMESPACE: weather
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/setup-helm@v4
+      - name: Build images
+        run: |
+          docker build -t weatherapp-api:ci backend
+          docker build -t weatherapp-web:ci frontend
+      - uses: helm/kind-action@v1
+        with:
+          cluster_name: smoke
+      - name: Load images into kind
+        run: kind load docker-image weatherapp-api:ci weatherapp-web:ci --name smoke
+      - name: Install chart and wait for readiness
+        run: |
+          helm install "$RELEASE" deploy/chart/weatherapp \
+            --set api.image.repository=weatherapp-api \
+            --set api.image.tag=ci \
+            --set web.image.repository=weatherapp-web \
+            --set web.image.tag=ci \
+            --set ingress.enabled=false \
+            --wait --timeout 5m
+      - name: Verify endpoints
+        run: |
+          kubectl -n "$NAMESPACE" port-forward "svc/${RELEASE}-weatherapp-api" 18000:8000 &
+          kubectl -n "$NAMESPACE" port-forward "svc/${RELEASE}-weatherapp-web" 18080:80 &
+          sleep 5
+          curl -fsS http://127.0.0.1:18000/health/live
+          curl -fsS http://127.0.0.1:18000/health/ready
+          curl -fsS http://127.0.0.1:18000/api/v1/weather | jq -e '.' > /dev/null
+          curl -fsS http://127.0.0.1:18080/ | grep -qi '<html'
+      - name: Dump diagnostics
+        if: failure()
+        run: |
+          kubectl get all -A
+          kubectl -n "$NAMESPACE" describe pods
+          kubectl -n "$NAMESPACE" logs -l app.kubernetes.io/instance="$RELEASE" --all-containers --tail=200 || true

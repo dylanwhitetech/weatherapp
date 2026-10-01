@@ -88,8 +88,8 @@ cd backend && python -m ruff check src tests
 
 ## CI / release model
 
-- `test.yml` enforces backend Ruff + tests, frontend lint + tests + build, and Helm chart lint
-- `images.yml` pushes multi-arch images to GHCR on merge to `main`
+- `test.yml` enforces backend Ruff + tests, frontend lint + tests + build, Helm chart lint, and a kind-based chart smoke test (`chart-smoke`)
+- `images.yml` pushes SHA-tagged multi-arch images to GHCR on merge to `main`
 - `release-chart.yml` publishes the OCI Helm chart on semver tags
 
 ## Deployment
