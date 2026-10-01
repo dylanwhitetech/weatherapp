@@ -2,7 +2,7 @@
 name: weatherapp-worktree-hydrate
 description: "Hydrate a weatherapp worktree with local environment config, verify provider key readiness, run targeted checks, and relaunch preview. Use this at the start of new worktree sessions when local API keys or .env drift are likely."
 license: MIT
-compatibility: "Cross-platform. Requires an existing local weatherapp checkout with a usable .env or fallback to .env.example."
+compatibility: "Cross-platform. Requires an existing local weatherapp checkout, Node.js 20.19+, 22.12+, or 24+, and a usable .env or fallback to .env.example."
 argument-hint: "Optional: include source checkout path for .env hydration, whether to run full tests, and whether to relaunch browser preview."
 allowed-tools: shell
 ---
@@ -52,6 +52,7 @@ Run the smallest relevant checks first:
 cd backend && python -m ruff check src tests
 cd backend && python -m pytest -q
 cd frontend && npm run test:ci
+cd frontend && npm run lint
 cd frontend && npm run build
 ```
 

@@ -1,10 +1,11 @@
 # Weatherapp
 
-Weatherapp is a self-hosted weather dashboard for a Raspberry Pi k3s homelab. It provides:
+Weatherapp is a self-hosted weather dashboard served at <https://weatherapp.dylanlabs.dev> from a Raspberry Pi k3s cluster. It provides:
 
 - Current conditions
 - Hourly and daily forecasts
 - NWS alert visibility
+- Weather map layers for precipitation, fires, air quality, temperature, and wind
 - Golf and lawn recommendation cards
 - Prometheus telemetry from the API
 
@@ -13,16 +14,16 @@ Weatherapp is a self-hosted weather dashboard for a Raspberry Pi k3s homelab. It
 - Backend: FastAPI (`backend/`)
 - Frontend: React + Vite (`frontend/`)
 - Delivery: Docker + Helm chart (`deploy/chart/weatherapp`)
-- CI: GitHub Actions tests, multi-arch image publishing, and OCI Helm chart release publishing
+- CI: GitHub Actions tests, chart smoke testing, SHA-tagged image publishing, and release-please-driven OCI Helm chart releases
 
 ## Repository layout
 
 ```text
-backend/                 FastAPI application, weather integration, tests
-frontend/                React dashboard
+backend/                 FastAPI application, weather integration, map overlays, tests
+frontend/                React dashboard and Vitest tests
 deploy/chart/weatherapp  Helm chart for API + web deployment
 observability/           Grafana dashboard JSON
-docs/                    Architecture, API, and operations documentation
+docs/                    Architecture, API, operations, and runbook docs
 ```
 
 ## Local development
@@ -30,7 +31,7 @@ docs/                    Architecture, API, and operations documentation
 ### Prerequisites
 
 - Docker Desktop (or Docker Engine + Compose plugin)
-- Node.js 18+
+- Node.js 20.19+, 22.12+, or 24+
 - Copy `.env.example` to `.env` and set your `NWS_USER_AGENT` contact string
 
 ### Start the stack
@@ -40,7 +41,7 @@ docs/                    Architecture, API, and operations documentation
 make local-up
 
 # 2. Start frontend dev server (separate terminal, runs on :5173)
-cd frontend && npm install && npm run dev
+cd frontend && npm ci && npm run dev
 ```
 
 Open `http://localhost:5173`. The frontend proxies `/api`, `/health`, and `/metrics` to the backend container.
@@ -82,28 +83,21 @@ make backend-test        # pytest
 make frontend-test       # vitest (CI mode, no watch)
 ```
 
-Run the same quality gates enforced by CI:
+Run the same local quality gates enforced by CI:
 
 ```bash
 # Backend lint
 cd backend && python -m ruff check src tests
 
-# Frontend lint
+# Frontend lint and build
 cd frontend && npm run lint
+cd frontend && npm run build
 
 # Helm chart lint
 helm lint deploy/chart/weatherapp
 ```
 
-Or individually:
-
-```bash
-# Backend
-cd backend && pytest tests
-
-# Frontend
-cd frontend && npm run test:ci
-```
+CI also runs a `chart-smoke` job that builds both images, installs the chart into a throwaway kind cluster, waits for readiness, and curls `/health/live`, `/health/ready`, `/api/v1/weather`, and the web root.
 
 ## Helm deployment (local chart)
 
@@ -115,12 +109,8 @@ helm upgrade --install weatherapp ./deploy/chart/weatherapp \
   --set web.image.tag=<sha-tag>
 ```
 
-## k3s-infrastructure integration
+## Production, release, and infrastructure handoff
 
-Production handoff uses an OCI-published chart and Flux chart version pinning in `k3s-infrastructure`.
+Production uses the OCI chart at `oci://ghcr.io/dylanwhitetech/charts` with chart name `weatherapp`. Release automation is owned by release-please: merge releasable Conventional Commit PRs to `main`, merge the generated release PR, then merge the generated infra promotion PR in `dylanwhitetech/k3s-infrastructure` so Flux deploys the new chart version.
 
-- OCI chart target: `oci://ghcr.io/dylanwhitetech/charts`
-- Chart name: `weatherapp`
-- Infra promotion model: release workflow can auto-open an infra PR to bump `spec.chart.spec.version` in `kubernetes/apps/weatherapp/helmrelease.yaml`
-
-See `docs/operations.md` for release and handoff details.
+See [docs/operations.md](docs/operations.md) for the shipping flow and [docs/architecture.md](docs/architecture.md) for the runtime topology.
