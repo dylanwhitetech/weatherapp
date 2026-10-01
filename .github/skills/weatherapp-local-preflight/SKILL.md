@@ -2,7 +2,7 @@
 name: weatherapp-local-preflight
 description: "Run the full local weatherapp stack, verify backend and frontend health, and open the browser preview. Use this when the user wants a local smoke test, dev-stack startup, or pre-push verification."
 license: MIT
-compatibility: "Cross-platform. Requires Docker Desktop, Node.js 18+, and a repo-root .env with NWS_USER_AGENT configured."
+compatibility: "Cross-platform. Requires Docker Desktop, Node.js 20.19+, 22.12+, or 24+, and a repo-root .env with NWS_USER_AGENT configured."
 argument-hint: "Optional: ask to rebuild the backend, reinstall frontend dependencies, or skip opening the browser preview."
 allowed-tools: shell
 ---
@@ -39,7 +39,7 @@ Copy and follow this checklist:
 ## Prerequisites
 
 - Docker Desktop must be running
-- Node.js 18+ must be installed
+- Node.js 20.19+, 22.12+, or 24+ must be installed
 - `.env` file must exist at repo root (copy from `.env.example` and set `NWS_USER_AGENT`)
 
 ## Phase 1: Clean start

@@ -16,8 +16,8 @@ close upstream example already exists.
 
 ## What this repo is
 
-Weatherapp is a self-hosted weather dashboard for a k3s homelab. It pulls live
-conditions and forecasts from the NWS API. Backend is FastAPI; frontend is
+Weatherapp is a self-hosted weather dashboard served at `https://weatherapp.dylanlabs.dev` from a Raspberry Pi k3s cluster. It pulls live
+conditions, forecasts, alerts, and map overlays from NWS and provider APIs. Backend is FastAPI; frontend is
 React + Vite. It deploys via Helm to k3s managed by Flux.
 
 ## Repo layout
@@ -88,15 +88,15 @@ cd backend && python -m ruff check src tests
 
 ## CI / release model
 
-- `test.yml` enforces backend Ruff + tests, frontend lint + tests + build, Helm chart lint, and a kind-based chart smoke test (`chart-smoke`)
+- `test.yml` enforces backend Ruff + pytest, frontend lint + Vitest + build, Helm chart lint, and a kind-based chart smoke test (`chart-smoke`) that curls `/health/live`, `/health/ready`, `/api/v1/weather`, and `/`
 - `images.yml` pushes SHA-tagged multi-arch images to GHCR on merge to `main`
-- `release.yml` runs release-please: Conventional Commit PR titles (`feat:`/`fix:`) drive an auto-maintained release PR; merging it tags `vX.Y.Z` and calls `release-chart.yml`
-- `release-chart.yml` publishes the OCI Helm chart and opens the infra promotion PR
-- Never tag or bump versions by hand; release-please owns `.release-please-manifest.json` and `Chart.yaml`
+- `release.yml` runs release-please: Conventional Commit PR titles (`feat:`/`fix:`/`feat!:`) drive an auto-maintained release PR; merging it tags `vX.Y.Z` and calls `release-chart.yml`
+- `release-chart.yml` builds SHA-tagged multi-arch images, publishes the OCI Helm chart, and opens the infra promotion PR
+- Never tag or bump versions by hand during normal shipping; release-please owns `.release-please-manifest.json` and `Chart.yaml`
 
 ## Deployment
 
-Production runs in k3s via Flux. Infra promotion is a chart version bump in the
-separate `k3s-infrastructure` repo after the chart release is published.
+Production runs in k3s via Flux behind an in-cluster Cloudflare Tunnel and ingress-nginx. Infra promotion is a chart version bump in the
+separate `k3s-infrastructure` repo after the chart release is published; intentional rollback is reverting that infra promotion PR.
 
-See `docs/operations.md` for operational details.
+See `docs/operations.md` for the release flow and `docs/architecture.md` for runtime topology.

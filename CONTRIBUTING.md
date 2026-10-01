@@ -92,7 +92,7 @@ Examples:
 - Use the PR template.
 - Link the issue.
 - Describe user impact, validation performed, and any chart or operational
-  impact.
+  impact. Release behavior is documented in `docs/operations.md`; do not manually tag or bump release versions during normal shipping.
 - If you added or changed an agent/skill, name the `awesome-copilot` reference
   you started from.
 
@@ -126,7 +126,7 @@ If backend Python tooling is installed, also run:
 cd backend && python -m ruff check src tests
 ```
 
-If you changed the Helm chart and Helm is available locally, run:
+CI also runs Helm lint and the `chart-smoke` kind install on pull requests. If you changed the Helm chart and Helm is available locally, run:
 
 ```bash
 helm lint deploy/chart/weatherapp

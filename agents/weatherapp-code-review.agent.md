@@ -37,8 +37,8 @@ and release impact.
 ### Deployment and release
 
 - Review Helm templates, values, and image/tag changes for release safety.
-- Watch for changes that require coordination with Flux chart version pinning or
-  GHCR publishing.
+- Watch for changes that require coordination with release-please, SHA-tagged images, Flux chart version pinning, or GHCR publishing.
+- Flag reintroductions of removed production assumptions such as `:latest` tags, GHCR chart pull secrets for public packages, Pi-hole/private `home.arpa` routing, private homelab CA wildcard certs, or a Windows desktop cloudflared service.
 
 ## Review structure
 

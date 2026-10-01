@@ -114,7 +114,7 @@ This repo keeps runtime skills under `.github/skills/` rather than a root
 
 ### Frontend
 
-- TypeScript, React, and Vite are the default frontend stack.
+- TypeScript, React, Vite, Vitest, and oxlint are the default frontend stack. Use Node.js 20.19+, 22.12+, or 24+.
 - Preserve proxy-based local API behavior unless the change intentionally
   updates the local development contract.
 - Keep UI state transitions, stale-data warnings, and refresh behavior coherent.
@@ -125,6 +125,7 @@ This repo keeps runtime skills under `.github/skills/` rather than a root
   prompts, examples, templates, or logs. Use placeholders such as `ask admin`.
 - Any behavior-changing change should include the smallest relevant tests and
   update user-facing or operator-facing docs when the contract changes.
+- Keep release and deployment docs aligned with `docs/operations.md`; normal releases are release-please-driven, use SHA image tags, and promote through `dylanwhitetech/k3s-infrastructure`.
 
 ## Review expectations
 
@@ -140,5 +141,7 @@ This repo keeps runtime skills under `.github/skills/` rather than a root
 - `CONTRIBUTING.md`
 - `.github/copilot-instructions.md`
 - `.github/skills/weatherapp-local-preflight/SKILL.md`
+- `.github/skills/weatherapp-worktree-hydrate/SKILL.md`
 - `agents/weatherapp-code-review.agent.md`
+- `docs/operations.md`
 - `docs/runbook.md`
