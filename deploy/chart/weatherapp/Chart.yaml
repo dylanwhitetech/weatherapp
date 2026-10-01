@@ -2,5 +2,7 @@ apiVersion: v2
 name: weatherapp
 description: Helm chart for weatherapp API and web dashboard
 type: application
-version: 0.1.3
-appVersion: "0.1.3"
+# Managed by release-please; do not bump by hand. The published chart's
+# appVersion is overwritten with the release commit SHA by release-chart.yml.
+version: 0.1.4 # x-release-please-version
+appVersion: "0.1.4" # x-release-please-version

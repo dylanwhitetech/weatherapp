@@ -1,0 +1,45 @@
+name: release
+
+# release-please keeps an open "chore(main): release X.Y.Z" PR that bumps the
+# version and changelog from Conventional Commits. Merging that PR tags vX.Y.Z,
+# creates the GitHub Release, and publishes the chart + opens the infra
+# promotion PR via release-chart.yml.
+on:
+  push:
+    branches:
+      - main
+
+permissions: {}
+
+concurrency:
+  group: release-please
+  cancel-in-progress: false
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      version: ${{ steps.release.outputs.version }}
+      sha: ${{ steps.release.outputs.sha }}
+    steps:
+      - uses: googleapis/release-please-action@v4
+        id: release
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+  publish:
+    needs: release-please
+    if: ${{ needs.release-please.outputs.release_created == 'true' }}
+    permissions:
+      contents: read
+      packages: write
+    uses: ./.github/workflows/release-chart.yml
+    with:
+      chart_version: ${{ needs.release-please.outputs.version }}
+      source_sha: ${{ needs.release-please.outputs.sha }}
+    secrets: inherit

@@ -41,7 +41,6 @@ jobs:
           platforms: linux/amd64,linux/arm64
           tags: |
             ghcr.io/${{ github.repository_owner }}/weatherapp-${{ matrix.component }}:${{ github.sha }}
-            ghcr.io/${{ github.repository_owner }}/weatherapp-${{ matrix.component }}:latest
           labels: |
             org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
             org.opencontainers.image.revision=${{ github.sha }}
