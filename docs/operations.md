@@ -43,7 +43,10 @@ helm upgrade --install weatherapp ./deploy/chart/weatherapp \
 The deployed WeatherApp is available at <https://weatherapp.dylanlabs.dev>.
 The public hostname, DNS, TLS, Cloudflare Tunnel, and Kubernetes exposure are
 environment-specific and owned by
-[`dylanwhitetech/k3s-infrastructure#22`](https://github.com/dylanwhitetech/k3s-infrastructure/issues/22).
+[`dylanwhitetech/k3s-infrastructure`](https://github.com/dylanwhitetech/k3s-infrastructure)
+(see `docs/05-cloudflare-tunnel.md`). The chart's default `ingress.host` matches
+this hostname. The former private LAN path (`weather.home.arpa` via Pi-hole and a
+homelab CA) is deprecated.
 
 ## Basic verification
 
@@ -51,10 +54,17 @@ environment-specific and owned by
 kubectl -n weather get pods,svc,ingress
 kubectl -n weather rollout status deploy/weatherapp-weatherapp-api
 kubectl -n weather rollout status deploy/weatherapp-weatherapp-web
-curl https://weatherapp.dylanlabs.dev/api/health/live
-curl https://weatherapp.dylanlabs.dev/api/health/ready
 curl https://weatherapp.dylanlabs.dev/api/v1/weather
 curl https://weatherapp.dylanlabs.dev/
+```
+
+Health endpoints (`/health/live`, `/health/ready`) are not routed through the
+public Ingress, which only sends `/api` to the API. Check them in-cluster:
+
+```bash
+kubectl -n weather port-forward svc/weatherapp-weatherapp-api 8000:8000
+curl http://localhost:8000/health/live
+curl http://localhost:8000/health/ready
 ```
 
 ## Rollback

@@ -167,7 +167,9 @@ Look for:
 **Resolution:**
 1. Verify all required environment variables are set in the Helm values / k3s secret.
    See [Required environment values](operations.md#required-environment-values).
-2. Check liveness probe: `curl https://weatherapp.dylanlabs.dev/api/health/live`.
+2. Check liveness probe in-cluster:
+   `kubectl -n weather port-forward svc/weatherapp-weatherapp-api 8000:8000`, then
+   `curl http://localhost:8000/health/live`.
 3. If the container exits without log output, check the Dockerfile `CMD` and ensure
    `uvicorn` is starting correctly.
 
