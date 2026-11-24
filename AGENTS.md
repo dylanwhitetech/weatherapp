@@ -1,159 +1,80 @@
 # AGENTS.md
 
-## Purpose
+Rules for agents and contributors that cannot be worked out from the code,
+README, or docs. Keep this file short; do not add repo overviews.
 
-This repository uses GitHub Copilot customizations to capture weatherapp-specific
-engineering standards, review guidance, and repeatable workflows.
+## Agents and loops
 
-## Shared standards (portable baseline)
+| Agent | Use |
+| --- | --- |
+| `weatherapp-main` | Default entry agent for every session. Plans, implements, and delegates. |
+| `weatherapp-test` | Writes and runs tests. Background subagent or its own worktree session. |
+| `weatherapp-deploy` | Release-please release, SHA-tagged images, infra promotion PR, rollout check. |
 
-These rules apply to every file in the repository and are intentionally compact
-so they can be reused in other repos.
-
-### Must have
-
-- Git must be used for version control and code management.
-- Code must use meaningful variable and function names.
-- Relevant tests must run and pass before merge.
-- Code must be reviewed by at least one developer before merge.
-- Documentation examples must use placeholders such as `ask admin` instead of
-  real credentials or passwords.
-
-### Should have
-
-- Code should avoid global variables whenever practical.
-- Exception handling should be used to handle errors gracefully.
-- Dependencies should be updated regularly for security and compatibility.
-- Single Responsibility should guide functions and classes.
-- DRY (Don't Repeat Yourself) should be followed.
-- KISS (Keep It Simple, Stupid) should be followed.
-- YAGNI (You Aren't Gonna Need It) should be followed.
-- DMMT (Don't Make Me Think) should be followed.
-- KIM (Keep It Maintainable) should be followed.
-- APO (Avoid Premature Optimization) should be followed.
-- SOC (Separation of Concerns) should be followed.
-
-### Could have
-
-- Complex code could include clarifying comments, but refactoring for readability
-  is preferred first.
-
-### Won't have
-
-- Code won't include unnecessary duplication.
-- Code won't include unnecessary comments that add no value.
+- Select `weatherapp-main` at the start of each session (see
+  `CONTRIBUTING.md`, "Copilot agents"). No repo file enforces this.
+- Delegation is one hop: subagents cannot create subagents, so give them
+  complete context.
+- Pull requests use built-in Copilot code review on GitHub; there is no custom
+  review agent.
+- **Guidance**: before new scope, check `guidance/README.md` and matching
+  records. When a change introduces, replaces, or retires a lasting decision
+  (architecture, stack, deployment, constraints), add or update a record in the
+  same PR. Supersede rather than delete.
+- **Field notes**: use the `field-notes` skill when an agent or skill was wrong
+  or blocked and a fix was found, a command was retried with changes, the user
+  corrected the agent, or guidance was missing or stale. Notes go in the
+  session files folder, never the repo.
+- **Authoring**: use the `copilot-authoring` skill before adding or editing
+  agents, skills, or instructions. Create a new skill only when a field note or
+  failure shows the need. Check `github/awesome-copilot` first and cite the
+  example used in the PR.
+- **Resources**: when the user shares a new agentic resource, append it to
+  `.github/skills/copilot-authoring/references.md`.
 
 ## Communication
 
-Use the [Minto Pyramid](https://untools.co/minto-pyramid/) principle for
-contributor and Copilot communication:
+Lead with the conclusion or requested action, then supporting points, then
+evidence ([Minto Pyramid](https://untools.co/minto-pyramid/)). State
+uncertainty, blockers, and tradeoffs plainly.
 
-- Lead with the conclusion, decision, or requested action.
-- Follow with the key supporting points, grouped logically.
-- Include relevant evidence and details after those points, keeping the depth
-  appropriate to the audience and task.
-- State uncertainty, blockers, and material tradeoffs clearly; do not imply a
-  decision has been made when it has not.
+## Backend
 
-## Reference-first rule
-
-Before creating a new agent or skill in this repo:
-
-1. Check `https://github.com/github/awesome-copilot`.
-2. Search the published catalog first:
-   - `https://awesome-copilot.github.com/agents`
-   - `https://awesome-copilot.github.com/skills`
-   - `https://awesome-copilot.github.com/llms.txt`
-3. Reuse or adapt a close example instead of inventing a new pattern from scratch.
-
-Use the upstream repo as the template source for frontmatter, naming,
-checklists, and bundled-asset patterns.
-
-## Repo AI surfaces
-
-| Surface | Purpose |
-| --- | --- |
-| `.github/copilot-instructions.md` | Repo-wide Copilot behavior and implementation defaults |
-| `.github/skills/<skill>/SKILL.md` | Repo runtime skills used by Copilot in this workspace |
-| `agents/*.agent.md` | Shareable custom agents for repo-specific workflows |
-| `.github/extensions/` | Copilot CLI extensions and canvas/runtime automation |
-
-This repo keeps runtime skills under `.github/skills/` rather than a root
-`skills/` folder so the workspace can load them directly.
-
-## Authoring standards
-
-### Agents
-
-- Use lowercase-hyphen filenames with the `.agent.md` suffix.
-- Include markdown frontmatter with, at minimum, `name` and `description`.
-- Prefer adding `model` and `tools` when the target platform supports them.
-- State the agent's scope, priorities, and constraints explicitly.
-- Optimize for high-signal behavior, not novelty or persona for its own sake.
-
-### Skills
-
-- Use a lowercase-hyphen folder name containing `SKILL.md`.
-- Include frontmatter with `name` and a clear `description`.
-- Define trigger conditions, workflow phases, output contract, and gotchas.
-- Keep bundled assets small and reference them from the skill document.
-- Prefer task-focused skills over generic "do everything" prompts.
-
-## Weatherapp engineering rules
-
-### Backend
-
-- Python 3.12, FastAPI, pytest, and Ruff are the default backend toolchain.
-- All async backend code uses `asyncio`.
-- Keep NWS API access inside the backend service layer; route handlers should
-  not call NWS directly.
+- All async code uses `asyncio`.
+- NWS access stays in the backend service layer; route handlers never call NWS
+  directly (`guidance/0001-nws-access-through-backend-service-layer.md`).
 - Reuse `_mps_to_mph`, `_c_to_f`, `_wind_direction`, and `_parse_wind_values`
   when those conversions apply.
 
-### Structured logging
+### Logging
 
-- Use **loguru** for all backend logging: `from loguru import logger`.
-- Call `configure_logging(settings.log_level)` once at application startup
-  (see `weather_api.telemetry.configure_logging`). This emits NDJSON to stdout,
-  readable by Loki and other log aggregators in k3s.
-- Log level is controlled by the `LOG_LEVEL` environment variable (default `INFO`).
-  Set `LOG_LEVEL=DEBUG` to enable per-request NWS URL tracing.
-- Pass contextual fields as keyword arguments: `logger.info("msg", key=value)`.
-  Use `logger.bind(key=value)` to attach fields for the duration of a scope.
-- **Never log credentials, tokens, or personally identifiable information.**
-- Prefer `logger.warning` for recoverable degraded states (stale data, retries)
-  and `logger.error` for unrecoverable failures (no data available, final upstream error).
+- Use loguru (`from loguru import logger`). `configure_logging(settings.log_level)`
+  runs once at startup and emits NDJSON to stdout.
+- Pass context as keyword arguments (`logger.info("msg", key=value)`) or with
+  `logger.bind(...)`.
+- `logger.warning` for recoverable degraded states (stale data, retries);
+  `logger.error` for unrecoverable failures.
+- Never log credentials, tokens, or personal data.
 
-### Frontend
+## Frontend
 
-- TypeScript, React, Vite, Vitest, and oxlint are the default frontend stack. Use Node.js 20.19+, 22.12+, or 24+.
 - Preserve proxy-based local API behavior unless the change intentionally
   updates the local development contract.
-- Keep UI state transitions, stale-data warnings, and refresh behavior coherent.
+- Keep UI state transitions, stale-data warnings, and refresh behavior
+  coherent.
 
-### Documentation and operations
+## Secrets, docs, and release
 
-- Never place secrets, passwords, tokens, or real credentials in source,
-  prompts, examples, templates, or logs. Use placeholders such as `ask admin`.
-- Any behavior-changing change should include the smallest relevant tests and
-  update user-facing or operator-facing docs when the contract changes.
-- Keep release and deployment docs aligned with `docs/operations.md`; normal releases are release-please-driven, use SHA image tags, and promote through `dylanwhitetech/k3s-infrastructure`.
+- Never put secrets, passwords, tokens, or real credentials in source, prompts,
+  examples, templates, or logs. Use placeholders such as `ask admin`.
+- Behavior changes include the smallest relevant tests and update user- or
+  operator-facing docs when the contract changes.
+- Releases follow `docs/operations.md`: release-please, SHA image tags, and
+  promotion through `dylanwhitetech/k3s-infrastructure`. Never tag or bump
+  versions by hand, and never mutate the cluster directly.
 
-## Review expectations
+## Pull requests
 
-- Use GitHub Flow with short-lived branches and pull requests into `main`.
-- Use Conventional Commits for commit messages.
-- Keep PRs scoped to one concern when possible.
-- Require a human review before merge.
-- When adding or updating agents or skills, cite the upstream `awesome-copilot`
-  example used as a starting point in the PR description.
-
-## Related docs
-
-- `CONTRIBUTING.md`
-- `.github/copilot-instructions.md`
-- `.github/skills/weatherapp-local-preflight/SKILL.md`
-- `.github/skills/weatherapp-worktree-hydrate/SKILL.md`
-- `agents/weatherapp-code-review.agent.md`
-- `docs/operations.md`
-- `docs/runbook.md`
+- GitHub Flow: short-lived branches, PRs into `main`, one concern per PR.
+- Conventional Commit PR titles (they drive release-please).
+- A human review is required before merge.

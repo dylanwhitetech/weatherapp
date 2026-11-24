@@ -1,102 +1,12 @@
-# Copilot Instructions — weatherapp
+# Copilot instructions
 
-## Read these first
+`AGENTS.md` is the canonical rule file for this repository. Read it first; it
+lists the agents, the guidance and field-notes loops, and the repo rules.
 
-- `AGENTS.md`
-- `CONTRIBUTING.md`
+Copilot-specific notes:
 
-Before creating a new agent or skill, check `github/awesome-copilot` first:
-
-- `https://awesome-copilot.github.com/agents`
-- `https://awesome-copilot.github.com/skills`
-- `https://awesome-copilot.github.com/llms.txt`
-
-Reuse an existing pattern when it fits. Do not invent a new structure when a
-close upstream example already exists.
-
-## What this repo is
-
-Weatherapp is a self-hosted weather dashboard served at `https://weatherapp.dylanlabs.dev` from a Raspberry Pi k3s cluster. It pulls live
-conditions, forecasts, alerts, and map overlays from NWS and provider APIs. Backend is FastAPI; frontend is
-React + Vite. It deploys via Helm to k3s managed by Flux.
-
-## Repo layout
-
-```text
-backend/                 FastAPI app, NWS client, cache, recommendations, tests
-frontend/                React + Vite dashboard, vitest tests
-deploy/chart/weatherapp  Helm chart (OCI-published to ghcr.io/dylanwhitetech/charts)
-agents/                  Custom repo agents
-.github/skills/          Repo runtime Copilot skills
-.github/extensions/      Copilot CLI extensions
-.github/workflows/       CI: tests, image publish, chart release
-docker-compose.yml       Local dev backend stack
-Makefile                 Local test and lifecycle commands
-observability/           Grafana dashboard JSON
-docs/                    Architecture, API, and operations docs
-```
-
-## Code standards source of truth
-
-All code standards are centralized in `AGENTS.md` for human readability:
-
-- `Shared standards (portable baseline)`
-- `Weatherapp engineering rules`
-
-When standards change, update `AGENTS.md` first and keep this file as a concise
-execution and routing guide.
-
-## AI customization rules
-
-- Repo runtime skills live in `.github/skills/`.
-- Custom agents live in `agents/`.
-- New skills and agents should follow `awesome-copilot` naming, frontmatter,
-  and checklist patterns.
-- If you add or update a skill or agent, mention the upstream example used as a
-  starting point in the PR description.
-
-## Local development workflow
-
-Backend runs in Docker Compose. Frontend runs on the host.
-
-```bash
-# Copy .env.example -> .env and set NWS_USER_AGENT
-make local-up
-cd frontend && npm run dev
-make local-down
-```
-
-Agentic shortcut:
-
-- skill: `.github/skills/weatherapp-local-preflight/SKILL.md`
-- extension/tooling: `.github/extensions/weatherapp-local-tester/`
-
-## Validation commands
-
-```bash
-make backend-test
-make frontend-test
-cd frontend && npm run build
-cd frontend && npm run lint
-```
-
-If backend tooling is installed, also run:
-
-```bash
-cd backend && python -m ruff check src tests
-```
-
-## CI / release model
-
-- `test.yml` enforces backend Ruff + pytest, frontend lint + Vitest + build, Helm chart lint, and a kind-based chart smoke test (`chart-smoke`) that curls `/health/live`, `/health/ready`, `/api/v1/weather`, and `/`
-- `images.yml` pushes SHA-tagged multi-arch images to GHCR on merge to `main`
-- `release.yml` runs release-please: Conventional Commit PR titles (`feat:`/`fix:`/`feat!:`) drive an auto-maintained release PR; merging it tags `vX.Y.Z` and calls `release-chart.yml`
-- `release-chart.yml` builds SHA-tagged multi-arch images, publishes the OCI Helm chart, and opens the infra promotion PR
-- Never tag or bump versions by hand during normal shipping; release-please owns `.release-please-manifest.json` and `Chart.yaml`
-
-## Deployment
-
-Production runs in k3s via Flux behind an in-cluster Cloudflare Tunnel and ingress-nginx. Infra promotion is a chart version bump in the
-separate `k3s-infrastructure` repo after the chart release is published; intentional rollback is reverting that infra promotion PR.
-
-See `docs/operations.md` for the release flow and `docs/architecture.md` for runtime topology.
+- Start sessions with the `weatherapp-main` agent (`.github/agents/`).
+- Skills live in `.github/skills/`; CLI extensions live in
+  `.github/extensions/`.
+- Validation commands are in `README.md` ("Testing") and in the
+  `weatherapp-test` agent.

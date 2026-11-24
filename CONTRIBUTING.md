@@ -6,64 +6,62 @@ stay aligned with the repo's runtime model and AI standards.
 
 ## Start here
 
-1. Read `AGENTS.md`.
-2. Read `.github/copilot-instructions.md`.
-3. If you are adding a new agent or skill, inspect
-   `https://github.com/github/awesome-copilot` first for prior art.
+1. Read `AGENTS.md` (canonical repo rules).
+2. Check `guidance/README.md` and any records that match your change.
+3. Before adding or editing an agent, skill, or instruction file, follow
+   `.github/skills/copilot-authoring/SKILL.md`.
 
-For a copy-ready standards block you can reuse in other repos, use
-`AGENTS.md` section **Shared standards (portable baseline)**.
+## Code standards
 
-## Code standards (single source of truth)
+Repo-specific rules live in `AGENTS.md`. General expectations:
 
-All code standards live in `AGENTS.md`:
+- Use meaningful names, keep functions single-purpose, and handle errors
+  explicitly.
+- Prefer simple, maintainable code over premature optimization or speculative
+  features; avoid duplication and comments that add no value.
+- Keep dependencies current.
+- Relevant tests must pass and at least one human must review before merge.
 
-- `Shared standards (portable baseline)`
-- `Weatherapp engineering rules`
+## Copilot agents
 
-This keeps standards in one human-readable location and makes cross-repo reuse
-easier. Update standards in `AGENTS.md` first, then adjust links elsewhere.
+| Agent | Purpose |
+| --- | --- |
+| `weatherapp-main` | Default entry agent: plans, implements, delegates |
+| `weatherapp-test` | Writes and runs tests |
+| `weatherapp-deploy` | Release, infra promotion PR, rollout verification |
+
+Agents live in `.github/agents/`. No repository file can make an agent the
+automatic default, so select `weatherapp-main` when you start a session:
+
+- **GitHub Copilot app**: choose `weatherapp-main` from the agent picker in the
+  prompt box, or type `/agent`. To nudge every session, you can also add "Use
+  the weatherapp-main agent" to the repository's Instructions field (Settings →
+  Repositories → weatherapp); this is guidance, not enforcement.
+- **Copilot CLI**: run `copilot --agent=weatherapp-main`, or type `/agent`
+  in an interactive session.
+- **Copilot cloud agent on GitHub.com**: on the Agents tab, pick
+  `weatherapp-main` from the agent dropdown in the prompt box. Repository
+  agents appear there only after they are merged to the default branch.
+
+Code review uses built-in Copilot code review on GitHub; there is no custom
+review agent.
 
 ## AI customization standards
 
-### Reference baseline
-
-Before adding a new agent or skill, check these first:
-
-- `https://awesome-copilot.github.com/agents`
-- `https://awesome-copilot.github.com/skills`
-- `https://awesome-copilot.github.com/llms.txt`
-- `https://github.com/github/awesome-copilot`
-
-Prefer adapting an existing example over writing a new structure from scratch.
-If you still need a new artifact, keep the same shape and naming conventions.
-
-### Where to place AI artifacts
-
 | Artifact | Location |
 | --- | --- |
-| Repo-wide Copilot defaults | `.github/copilot-instructions.md` |
-| Runtime skills for this repo | `.github/skills/<skill>/SKILL.md` |
-| Custom agents | `agents/<name>.agent.md` |
+| Canonical rules | `AGENTS.md` |
+| Copilot pointer | `.github/copilot-instructions.md` |
+| Custom agents | `.github/agents/<name>.agent.md` |
+| Skills | `.github/skills/<skill>/SKILL.md` |
 | CLI extensions | `.github/extensions/<extension-id>/` |
+| Durable decisions | `guidance/NNNN-<title>.md` |
 
-### Agent requirements
-
-- Lowercase-hyphen file name with `.agent.md`
-- Frontmatter with `name` and `description`
-- Clear scope, expertise, and constraints
-- Prefer professional, direct review behavior over gimmick personas
-- Note the upstream `awesome-copilot` example used as inspiration in the PR
-
-### Skill requirements
-
-- Lowercase-hyphen folder name
-- `SKILL.md` with `name` and `description`
-- Explicit trigger conditions
-- Repeatable phase/checklist workflow
-- Output contract that says what "done" looks like
-- Bundled assets referenced from the skill when applicable
-
+- Formats, frontmatter, and writing rules: `.github/skills/copilot-authoring/SKILL.md`.
+- Resource catalogue: `.github/skills/copilot-authoring/references.md`.
+- Add a skill only when a field note or observed failure shows the need.
+- Check `github/awesome-copilot` for prior art and name the example you
+  started from in the PR.
 ## Commit, branch, PR, and issue standards
 
 ### Branches
@@ -95,6 +93,7 @@ Examples:
   impact. Release behavior is documented in `docs/operations.md`; do not manually tag or bump release versions during normal shipping.
 - If you added or changed an agent/skill, name the `awesome-copilot` reference
   you started from.
+- Update `guidance/` in the same PR when the change alters a lasting decision.
 
 ### Issues
 
@@ -140,3 +139,4 @@ Update docs when you change:
 - local development flow
 - deployment or release behavior
 - AI standards, agents, skills, templates, or extension workflows
+- a lasting decision recorded in `guidance/`
