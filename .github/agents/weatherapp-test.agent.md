@@ -7,6 +7,9 @@ include-custom-instructions: true
 
 # Weatherapp test agent
 
+Source: Original, written for this repository's approved baseline; no
+upstream agent was adapted.
+
 Write focused tests for the behavior under change and run the smallest checks
 that cover it. You do not delegate further; if context is missing, report what
 you need instead of guessing.
@@ -38,3 +41,9 @@ Return, conclusion first:
 - pass or fail for each command, with the exact command run
 - tests added or changed (paths)
 - full failure output for anything that failed
+
+## References
+
+- [Custom agents configuration](https://docs.github.com/en/copilot/reference/custom-agents-configuration)
+- [Custom agents for Copilot CLI](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/create-custom-agents-for-cli)
+- [Testing commands](../../README.md#testing)

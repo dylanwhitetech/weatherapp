@@ -5,6 +5,9 @@ description: "Intended entry agent for weatherapp, selected by the user. Plans w
 
 # Weatherapp main agent
 
+Source: Original, written for this repository's approved baseline; no
+upstream agent was adapted.
+
 Start every weatherapp session with this agent. It owns the task end to end and
 delegates focused work instead of doing everything in one context.
 
@@ -39,3 +42,8 @@ delegates focused work instead of doing everything in one context.
 - Requested change implemented and verified with the smallest relevant checks.
 - Guidance and docs updated when the contract or a lasting decision changed.
 - Result reported conclusion first, with validation evidence.
+
+## References
+
+- [Custom agents configuration](https://docs.github.com/en/copilot/reference/custom-agents-configuration)
+- [Using subagents](https://docs.github.com/en/copilot/how-tos/copilot-in-your-ide/use-copilot-agents/use-subagents)

@@ -49,6 +49,9 @@ duplicate existing entries.
 
 ## Instructions, memory, and customization
 
+- [GitHub: Adding repository custom instructions](https://docs.github.com/en/copilot/how-tos/copilot-on-github/customize-copilot/add-custom-instructions/add-repository-instructions)
+  — `.github/instructions/**/NAME.instructions.md` with `applyTo` globs and
+  optional `excludeAgent`; on GitHub.com, cloud agent and code review only.
 - [GitHub: Customization cheat sheet](https://docs.github.com/en/copilot/reference/customization-cheat-sheet)
   — Which customization (instructions, agents, skills, hooks, MCP) fits which
   job, and where each file lives.
@@ -60,7 +63,7 @@ duplicate existing entries.
 
 - [GitHub: Syntax for issue forms](https://docs.github.com/en/communities/using-templates-to-encourage-useful-issues-and-pull-requests/syntax-for-issue-forms)
   — YAML form location, required keys, input types, and validations; not
-  supported for pull requests.
+  supported for pull requests; default `labels` must already exist.
 - [GitHub: Creating a pull request template](https://docs.github.com/en/communities/using-templates-to-encourage-useful-issues-and-pull-requests/creating-a-pull-request-template-for-your-repository)
   — Markdown template locations, multiple templates, and default-branch
   availability.

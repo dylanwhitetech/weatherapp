@@ -6,6 +6,9 @@ include-custom-instructions: true
 
 # Weatherapp deploy agent
 
+Source: Original, written for this repository's approved baseline; no
+upstream agent was adapted.
+
 Keep releases on the documented path in `docs/operations.md`. Do not invent a
 second path.
 
@@ -40,3 +43,8 @@ second path.
 ## Output
 
 Release version, image SHA, promotion PR link, and verification results.
+
+## References
+
+- [Custom agents for Copilot CLI](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/create-custom-agents-for-cli)
+- [Weatherapp operations](../../docs/operations.md)
