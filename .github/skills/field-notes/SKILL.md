@@ -6,7 +6,11 @@ description: "Records a short field note in the current session's files folder w
 # Field Notes
 
 Capture what happened while it is still fresh so a curator can later make a
-small, itemized improvement to the owning agent, skill, or `AGENTS.md`.
+small, itemized improvement to the owning agent, skill, `AGENTS.md`, or
+guidance record.
+
+Source: original to this baseline; the reflect-then-curate loop is a
+lightweight adaptation of the ACE paper's reflector and curator roles.
 
 ## Triggers
 
@@ -36,7 +40,8 @@ field notes inside the repository checkout, and never commit them.
 Use exactly these fields, one note per file:
 
 ```text
-repo: owner/name          owner: <agent-or-skill-file or AGENTS.md>
+repo: owner/name
+owner: <agent-or-skill-file, AGENTS.md, or guidance record>
 kind: wrong | blocked | repeated-tool | user-correction | missing-guidance
 trigger: what happened (1-3 lines)
 fix: what worked
@@ -47,11 +52,21 @@ status: new
 
 ## Rules
 
-- `owner` is the file that should change (for example
-  `.github/agents/<name>.agent.md`, `.github/skills/<name>/SKILL.md`, or
-  `AGENTS.md`).
+- `owner` is the file to add or change (for example
+  `.github/agents/<name>.agent.md`, `.github/skills/<name>/SKILL.md`,
+  `AGENTS.md`, or a `guidance/` record).
 - `proposed change` is one concrete add, edit, or remove. Split unrelated
   lessons into separate notes.
-- Keep `evidence` factual: exact commands, error text, and links. Remove
-  secrets, tokens, and private host data.
-- Leave `status: new`. The curator updates it after merging the change.
+- Keep `evidence` factual: exact commands, error text, and links. Redact
+  secrets, tokens, personal data, and private host data from the note.
+- Leave `status: new`. The curator sets `status: curated <date> <PR>` after
+  verifying a draft PR. Until then, the note remains pending.
+
+## References
+
+- [Agentic Context Engineering (ACE)](https://arxiv.org/html/2510.04618v3):
+  generator, reflector, and curator roles with itemized delta updates.
+- [Agent Skills best practices](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices):
+  concise skills that are evaluated and refined from observed use.
+- [About agent skills](https://docs.github.com/en/copilot/concepts/customizations/agent-skills):
+  GitHub Copilot skill format and locations.
