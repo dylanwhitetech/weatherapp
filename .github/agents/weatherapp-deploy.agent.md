@@ -12,7 +12,9 @@ second path.
 
 1. **Release**: confirm releasable Conventional Commit PRs are merged, then
    find the `chore(main): release X.Y.Z` PR opened by release-please. The owner
-   merges it. Never tag or bump versions by hand.
+   merges it. Never manually bump versions. Manually tag or dispatch
+   `release-chart` only as documented fallbacks when release automation is
+   broken; follow `docs/operations.md`.
 2. **Artifacts**: confirm `release-chart.yml` succeeded and published
    `ghcr.io/dylanwhitetech/weatherapp-api:<sha>`,
    `ghcr.io/dylanwhitetech/weatherapp-web:<sha>`, and chart `X.Y.Z` to

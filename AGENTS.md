@@ -69,9 +69,11 @@ uncertainty, blockers, and tradeoffs plainly.
   examples, templates, or logs. Use placeholders such as `ask admin`.
 - Behavior changes include the smallest relevant tests and update user- or
   operator-facing docs when the contract changes.
-- Releases follow `docs/operations.md`: release-please, SHA image tags, and
-  promotion through `dylanwhitetech/k3s-infrastructure`. Never tag or bump
-  versions by hand, and never mutate the cluster directly.
+- Normal releases follow `docs/operations.md`: release-please, SHA image tags,
+  and promotion through `dylanwhitetech/k3s-infrastructure`. Never manually
+  bump versions. Manually tag or dispatch `release-chart` only as documented
+  fallbacks when release automation is broken. Never mutate the cluster
+  directly.
 
 ## Pull requests
 

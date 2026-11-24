@@ -20,8 +20,11 @@ directly for releases.
 ## Consequences
 - Every deployed version maps to a tag, a chart version, and a commit SHA.
 - Rollback is a git revert in the infra repo.
-- No manual tagging or version bumps during normal shipping; release-please
-  owns `.release-please-manifest.json` and `deploy/chart/weatherapp/Chart.yaml`.
+- Never manually bump versions. Do not tag manually during normal shipping;
+  release-please owns `.release-please-manifest.json` and
+  `deploy/chart/weatherapp/Chart.yaml`.
+- If release automation is broken, use only the manual tag or `release-chart`
+  workflow-dispatch fallbacks documented in [docs/operations.md](../docs/operations.md).
 - Requires the repo setting that allows GitHub Actions to create PRs and the
   `K3S_INFRA_REPO_TOKEN` secret for automated promotion.
 
