@@ -66,6 +66,8 @@ A skill is defined at `.github/skills/weatherapp-local-preflight/SKILL.md` — r
 
 The Copilot CLI extension in `.github/extensions/weatherapp-local-tester/` automates execution. From a project session, type `/weather-local-test` in the chat composer. The preflight agent builds the backend, starts the frontend, health-checks both, and opens the browser preview automatically. Type `/weather-local-stop` to tear down.
 
+Start Copilot sessions with the `weatherapp-main` agent. See [CONTRIBUTING.md](CONTRIBUTING.md#copilot-agents) for how to select it, [AGENTS.md](AGENTS.md) for repo rules, and [guidance/](guidance/README.md) for durable project decisions.
+
 ### Backend-only (no Docker)
 
 ```bash

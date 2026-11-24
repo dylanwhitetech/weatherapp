@@ -130,7 +130,7 @@ Current release-please version: `0.1.4`.
 4. The owner merges that infra PR. Flux deploys it. If the new release fails readiness, Flux rolls back automatically and the HelmRelease stays `Ready=False` with the error until a fixed version is promoted.
 5. Rollback on purpose: revert the infra promotion PR.
 
-No manual tagging or version bumps. release-please owns `.release-please-manifest.json` and `deploy/chart/weatherapp/Chart.yaml`; images are tagged only with the commit SHA (no `:latest`). Fallbacks if automation is broken: manually push a `vX.Y.Z` tag or run `release-chart` with workflow dispatch using `chart_version` and `source_sha`.
+Do not manually bump versions. Do not manually tag during normal releases. release-please owns `.release-please-manifest.json` and `deploy/chart/weatherapp/Chart.yaml`; images are tagged only with the commit SHA (no `:latest`). Fallbacks if automation is broken: manually push a `vX.Y.Z` tag or run `release-chart` with workflow dispatch using `chart_version` and `source_sha`.
 
 One-time repo setting required by release-please: **Settings → Actions → General → Allow GitHub Actions to create and approve pull requests**.
 

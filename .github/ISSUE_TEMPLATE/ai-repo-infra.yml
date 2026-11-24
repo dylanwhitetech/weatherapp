@@ -17,11 +17,12 @@ body:
     attributes:
       label: Affected surfaces
       options:
-        - label: `.github/copilot-instructions.md`
-        - label: `.github/skills/`
-        - label: `agents/`
+        - label: "`AGENTS.md` / `.github/copilot-instructions.md`"
+        - label: "`.github/skills/`"
+        - label: "`.github/agents/`"
+        - label: "`guidance/`"
         - label: PR / issue templates
-        - label: `.github/extensions/`
+        - label: "`.github/extensions/`"
         - label: CI / workflow automation
     validations:
       required: true
