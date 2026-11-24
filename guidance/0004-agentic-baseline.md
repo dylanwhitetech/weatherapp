@@ -6,15 +6,16 @@ Accepted
 ## Context
 Copilot customizations had drifted: a review agent lived in the root `agents/`
 folder, which is not a supported repository agent location, and there was no
-default entry agent or feedback loop. Research shows repository overviews in
+designated entry agent or feedback loop. Research shows repository overviews in
 context files add cost without improving results, while explicit rules are
 followed.
 
 ## Decision
 - `AGENTS.md` is canonical and holds only rules an agent cannot work out from
   the code or docs. `.github/copilot-instructions.md` points to it.
-- Three repository agents in `.github/agents/`: `weatherapp-main` (default
-  entry agent, delegates one hop), `weatherapp-test`, and `weatherapp-deploy`.
+- Three repository agents in `.github/agents/`: `weatherapp-main` (intended
+  entry agent, selected by the user, delegates one hop), `weatherapp-test`,
+  and `weatherapp-deploy`.
 - No custom code-review agent; pull requests use built-in Copilot code review
   on GitHub.
 - The `field-notes` skill records lessons in the session files folder, never
@@ -26,7 +27,7 @@ followed.
 ## Consequences
 - Same shape as `dylanwhitetech/nailed-it-kitchen` and
   `dylanwhitetech/k3s-infrastructure`, so one curator can maintain all three.
-- The default agent cannot be enforced by files; contributors select
+- Agent selection cannot be enforced by files; contributors select
   `weatherapp-main` in the app or CLI (see `CONTRIBUTING.md`).
 
 ## References

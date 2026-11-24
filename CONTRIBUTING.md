@@ -26,7 +26,7 @@ Repo-specific rules live in `AGENTS.md`. General expectations:
 
 | Agent | Purpose |
 | --- | --- |
-| `weatherapp-main` | Default entry agent: plans, implements, delegates |
+| `weatherapp-main` | Intended entry agent, selected by the user: plans, implements, delegates |
 | `weatherapp-test` | Writes and runs tests |
 | `weatherapp-deploy` | Release, infra promotion PR, rollout verification |
 

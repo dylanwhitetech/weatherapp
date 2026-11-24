@@ -1,6 +1,6 @@
 ---
 name: weatherapp-main
-description: "Default entry agent for weatherapp. Plans work, checks guidance, implements backend, frontend, chart, and docs changes, and delegates testing and releases to the weatherapp test and deploy agents."
+description: "Intended entry agent for weatherapp, selected by the user. Plans work, checks guidance, implements backend, frontend, chart, and docs changes, and delegates testing and releases to the weatherapp test and deploy agents."
 ---
 
 # Weatherapp main agent

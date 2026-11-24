@@ -7,7 +7,7 @@ README, or docs. Keep this file short; do not add repo overviews.
 
 | Agent | Use |
 | --- | --- |
-| `weatherapp-main` | Default entry agent for every session. Plans, implements, and delegates. |
+| `weatherapp-main` | Intended entry agent, selected by the user for each session. Plans, implements, and delegates. |
 | `weatherapp-test` | Writes and runs tests. Background subagent or its own worktree session. |
 | `weatherapp-deploy` | Release-please release, SHA-tagged images, infra promotion PR, rollout check. |
 
