@@ -43,6 +43,18 @@ so they can be reused in other repos.
 - Code won't include unnecessary duplication.
 - Code won't include unnecessary comments that add no value.
 
+## Communication
+
+Use the [Minto Pyramid](https://untools.co/minto-pyramid/) principle for
+contributor and Copilot communication:
+
+- Lead with the conclusion, decision, or requested action.
+- Follow with the key supporting points, grouped logically.
+- Include relevant evidence and details after those points, keeping the depth
+  appropriate to the audience and task.
+- State uncertainty, blockers, and material tradeoffs clearly; do not imply a
+  decision has been made when it has not.
+
 ## Reference-first rule
 
 Before creating a new agent or skill in this repo:
