@@ -2,6 +2,7 @@
 name: weatherapp-test
 description: "Writes and runs weatherapp tests (pytest, Ruff, Vitest, oxlint, Vite build, Helm lint). Use as a background subagent from weatherapp-main or in its own worktree session when tests need an isolated checkout."
 tools: ["read", "edit", "search", "execute"]
+include-custom-instructions: true
 ---
 
 # Weatherapp test agent

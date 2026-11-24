@@ -1,6 +1,7 @@
 ---
 name: weatherapp-deploy
 description: "Ships weatherapp releases: release-please PR, SHA-tagged images and OCI chart, then the promotion PR in dylanwhitetech/k3s-infrastructure, and verifies the rollout. Never mutates the cluster directly."
+include-custom-instructions: true
 ---
 
 # Weatherapp deploy agent
